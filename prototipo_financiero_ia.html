@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Financiero IA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome (Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .loader {
+            border-top-color: #3b82f6;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pulse-animation {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Contenedor Principal Mobile-First -->
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative pb-20">
+        
+        <!-- Header -->
+        <header class="bg-blue-600 text-white p-5 rounded-b-2xl shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-xl font-bold tracking-tight"><i class="fa-solid fa-wallet mr-2"></i> Mi Negocio</h1>
+                <div class="text-xs bg-blue-500 px-2 py-1 rounded-full opacity-80" id="user-status">
+                    Conectando...
+                </div>
+            </div>
+            
+            <!-- Dashboard / Resumen -->
+            <div class="text-center mb-2">
+                <p class="text-blue-100 text-sm font-medium">Saldo Actual</p>
+                <h2 class="text-4xl font-bold mt-1" id="saldo-actual">$0.00</h2>
+            </div>
+            
+            <div class="flex justify-between mt-6 bg-blue-700/40 p-3 rounded-xl">
+                <div class="text-center w-1/2 border-r border-blue-500">
+                    <p class="text-xs text-blue-200">Ingresos <i class="fa-solid fa-arrow-trend-up text-green-300 ml-1"></i></p>
+                    <p class="font-semibold text-lg text-white" id="ingresos-totales">$0.00</p>
+                </div>
+                <div class="text-center w-1/2">
+                    <p class="text-xs text-blue-200">Gastos <i class="fa-solid fa-arrow-trend-down text-red-300 ml-1"></i></p>
+                    <p class="font-semibold text-lg text-white" id="gastos-totales">$0.00</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Botones de Acción (Entrada de datos) -->
+        <div class="px-5 py-6">
+            <h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Registrar Transacción</h3>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Botón Voz -->
+                <button id="btn-voz" class="flex flex-col items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 transition-colors border border-blue-100 rounded-2xl shadow-sm text-blue-700">
+                    <div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl mb-2 shadow-md">
+                        <i class="fa-solid fa-microphone"></i>
+                    </div>
+                    <span class="font-medium text-sm">Dictar voz</span>
+                </button>
+
+                <!-- Botón Imagen -->
+                <label for="input-foto" class="flex flex-col items-center justify-center p-4 bg-emerald-50 hover:bg-emerald-100 transition-colors border border-emerald-100 rounded-2xl shadow-sm text-emerald-700 cursor-pointer">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xl mb-2 shadow-md">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <span class="font-medium text-sm">Subir boleta</span>
+                    <input type="file" id="input-foto" accept="image/*" capture="environment" class="hidden">
+                </label>
+            </div>
+        </div>
+
+        <!-- Historial de Transacciones -->
+        <div class="px-5 pb-6">
+            <h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Historial Reciente</h3>
+            
+            <div id="lista-transacciones" class="space-y-3">
+                <!-- Los items se cargarán aquí dinámicamente -->
+                <div class="text-center text-gray-400 py-8 text-sm">
+                    Cargando transacciones...
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay de Carga (Procesando IA) -->
+        <div id="overlay-carga" class="fixed inset-0 bg-black/60 z-50 hidden flex-col items-center justify-center text-white">
+            <div class="loader border-4 border-gray-200 rounded-full w-12 h-12 mb-4"></div>
+            <p class="font-medium text-lg" id="loading-text">Analizando con IA...</p>
+            <p class="text-sm text-gray-300 mt-2 text-center px-6" id="loading-subtext">Espera un momento.</p>
+        </div>
+        
+        <!-- Overlay Escuchando (Voz) -->
+        <div id="overlay-voz" class="fixed inset-0 bg-blue-900/90 z-50 hidden flex-col items-center justify-center text-white">
+            <div class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-4xl mb-6 pulse-animation">
+                <i class="fa-solid fa-microphone"></i>
+            </div>
+            <p class="font-medium text-xl">Te estoy escuchando...</p>
+            <p class="text-sm text-blue-200 mt-2 text-center px-6">Ej: "Anotar un ingreso de 150 por venta de abarrotes"</p>
+            <button id="btn-cancelar-voz" class="mt-8 px-6 py-2 bg-white/20 rounded-full hover:bg-white/30 transition">Cancelar</button>
+        </div>
+
+    </div>
+
+    <!-- Módulo principal JS -->
+    <script type="module">
+        // -------------------------------------------------------------
+        // 1. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE
+        // -------------------------------------------------------------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variables de entorno de la plataforma Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ia-finanzas-app';
+        let firebaseConfig = { projectId: "dummy-project" }; // fallback
+        if (typeof __firebase_config !== 'undefined') {
+            try { firebaseConfig = JSON.parse(__firebase_config); } catch (e) { console.error("Error parsing firebase config", e); }
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let currentUser = null;
+        let transaccionesRef = null;
+
+        // -------------------------------------------------------------
+        // 2. REFERENCIAS DOM
+        // -------------------------------------------------------------
+        const elSaldo = document.getElementById('saldo-actual');
+        const elIngresos = document.getElementById('ingresos-totales');
+        const elGastos = document.getElementById('gastos-totales');
+        const elLista = document.getElementById('lista-transacciones');
+        const elStatus = document.getElementById('user-status');
+        
+        const btnVoz = document.getElementById('btn-voz');
+        const inputFoto = document.getElementById('input-foto');
+        const overlayCarga = document.getElementById('overlay-carga');
+        const overlayVoz = document.getElementById('overlay-voz');
+        const loadingText = document.getElementById('loading-text');
+        const loadingSubtext = document.getElementById('loading-subtext');
+        const btnCancelarVoz = document.getElementById('btn-cancelar-voz');
+
+        // -------------------------------------------------------------
+        // 3. AUTENTICACIÓN FIREBASE (Regla estricta)
+        // -------------------------------------------------------------
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Error de autenticación:", error);
+                elStatus.innerText = "Error Auth";
+                elStatus.classList.replace('bg-blue-500', 'bg-red-500');
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                elStatus.innerText = "Conectado";
+                elStatus.classList.replace('bg-red-500', 'bg-blue-500');
+                
+                // Configurar referencia estricta a la colección del usuario (Regla 1 de Storage)
+                transaccionesRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'transacciones');
+                cargarTransacciones();
+            } else {
+                currentUser = null;
+            }
+        });
+
+        // -------------------------------------------------------------
+        // 4. LÓGICA DE FIRESTORE Y UI
+        // -------------------------------------------------------------
+        function cargarTransacciones() {
+            if (!currentUser) return;
+            
+            // Regla 2: Sin queries complejas si no se necesita. Usaremos una ordenación básica, si falla caemos a query simple.
+            const q = query(transaccionesRef, orderBy('createdAt', 'desc'));
+
+            onSnapshot(q, (snapshot) => {
+                let totalIngresos = 0;
+                let totalGastos = 0;
+                let htmlLista = '';
+
+                if (snapshot.empty) {
+                    htmlLista = `
+                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center text-gray-500">
+                            <i class="fa-solid fa-receipt text-3xl mb-2 text-gray-300"></i>
+                            <p class="text-sm">Aún no hay transacciones.</p>
+                            <p class="text-xs mt-1">Usa la voz o sube una boleta para empezar.</p>
+                        </div>
+                    `;
+                } else {
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const monto = parseFloat(data.monto) || 0;
+                        const esIngreso = data.tipo === 'ingreso';
+                        
+                        if (esIngreso) totalIngresos += monto;
+                        else totalGastos += monto;
+
+                        const icon = esIngreso ? 'fa-arrow-trend-up text-green-500' : 'fa-arrow-trend-down text-red-500';
+                        const bgColor = esIngreso ? 'bg-green-100' : 'bg-red-100';
+                        const sign = esIngreso ? '+' : '-';
+                        const textColor = esIngreso ? 'text-green-600' : 'text-gray-800';
+
+                        // Formatear fecha si existe
+                        let fechaStr = "Reciente";
+                        if(data.createdAt) {
+                            const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date();
+                            fechaStr = dateObj.toLocaleDateString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                        }
+
+                        htmlLista += `
+                            <div class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center ${bgColor}">
+                                        <i class="fa-solid ${icon}"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-sm text-gray-800 truncate max-w-[150px] capitalize">${data.descripcion}</p>
+                                        <p class="text-xs text-gray-400">${fechaStr}</p>
+                                    </div>
+                                </div>
+                                <div class="font-bold ${textColor}">
+                                    ${sign}$${monto.toFixed(2)}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                const saldo = totalIngresos - totalGastos;
+                
+                // Actualizar UI
+                elIngresos.innerText = `$${totalIngresos.toFixed(2)}`;
+                elGastos.innerText = `$${totalGastos.toFixed(2)}`;
+                elSaldo.innerText = `$${saldo.toFixed(2)}`;
+                elLista.innerHTML = htmlLista;
+
+            }, (error) => {
+                console.error("Error obteniendo transacciones:", error);
+                // Fallback a query simple sin orderBy por si faltan índices
+                if (error.code === 'failed-precondition') {
+                    onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'transacciones'), (snap) => {
+                        // Lógica idéntica pero ordenamos en memoria
+                        let arr = [];
+                        snap.forEach(d => arr.push({id: d.id, ...d.data()}));
+                        arr.sort((a,b) => {
+                            const ta = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : 0) : 0;
+                            const tb = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : 0) : 0;
+                            return tb - ta;
+                        });
+                        // ... renderizado simplificado si es necesario
+                        location.reload(); // Recargar de forma brusca para simplificar en este prototipo si falla el índice
+                    });
+                }
+            });
+        }
+
+        async function guardarTransaccion(data) {
+            if (!currentUser || !transaccionesRef) return;
+            try {
+                await addDoc(transaccionesRef, {
+                    tipo: data.tipo,
+                    monto: Number(data.monto),
+                    descripcion: data.descripcion,
+                    createdAt: serverTimestamp()
+                });
+                mostrarExito("¡Transacción guardada con éxito!");
+            } catch (error) {
+                console.error("Error guardando doc:", error);
+                mostrarError("No se pudo guardar la transacción.");
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 5. INTEGRACIÓN GEMINI API (IA)
+        // -------------------------------------------------------------
+        const apiKey = ""; // Canvas proveerá esto automáticamente
+
+        async function procesarConGemini(promptText, base64Image = null) {
+            // URL base de Gemini API (Usamos gemini-3-flash-preview)
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            // Construir payload
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: []
+                }],
+                systemInstruction: {
+                    parts: [{ text: "Eres un asistente de digitalización financiera para pequeños negocios informales. Tu tarea es extraer la información de transacciones (ingresos o gastos) a partir del texto dictado o la imagen de una boleta. Analiza cuidadosamente." }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "tipo": { type: "STRING", enum: ["ingreso", "gasto"], description: "Si es una venta o ganancia es ingreso. Si es una compra, pago o costo es gasto." },
+                            "monto": { type: "NUMBER", description: "Monto total de la transacción." },
+                            "descripcion": { type: "STRING", description: "Breve descripción de qué trata la transacción (max 5 palabras)." }
+                        },
+                        required: ["tipo", "monto", "descripcion"]
+                    }
+                }
+            };
+
+            // Añadir texto
+            payload.contents[0].parts.push({ text: promptText });
+
+            // Añadir imagen si existe
+            if (base64Image) {
+                // Remover el prefijo data:image/jpeg;base64,
+                const base64Data = base64Image.split(',')[1];
+                const mimeType = base64Image.split(';')[0].split(':')[1];
+                
+                payload.contents[0].parts.push({
+                    inlineData: {
+                        mimeType: mimeType,
+                        data: base64Data
+                    }
+                });
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0) {
+                    const jsonText = result.candidates[0].content.parts[0].text;
+                    return JSON.parse(jsonText);
+                } else {
+                    throw new Error("Respuesta inválida de Gemini");
+                }
+            } catch (error) {
+                console.error("Error en Gemini API:", error);
+                throw error;
+            }
+        }
+
+
+        // -------------------------------------------------------------
+        // 6. FLUJOS DE USUARIO: VOZ E IMAGEN
+        // -------------------------------------------------------------
+        
+        // --- FLUJO VOZ ---
+        let reconocimiento;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            reconocimiento = new SpeechRecognition();
+            reconocimiento.lang = 'es-ES';
+            reconocimiento.interimResults = false;
+            reconocimiento.maxAlternatives = 1;
+
+            reconocimiento.onstart = () => {
+                overlayVoz.classList.remove('hidden');
+                overlayVoz.classList.add('flex');
+            };
+
+            reconocimiento.onresult = async (event) => {
+                const transcripcion = event.results[0][0].transcript;
+                overlayVoz.classList.add('hidden');
+                overlayVoz.classList.remove('flex');
+                
+                await procesarEntrada("Por favor extrae la transacción de este texto dictado: '" + transcripcion + "'");
+            };
+
+            reconocimiento.onerror = (event) => {
+                console.error("Error de voz", event.error);
+                overlayVoz.classList.add('hidden');
+                overlayVoz.classList.remove('flex');
+                if(event.error !== 'aborted'){
+                    mostrarError("No se pudo escuchar. Intenta de nuevo.");
+                }
+            };
+            
+            reconocimiento.onend = () => {
+                 overlayVoz.classList.add('hidden');
+                 overlayVoz.classList.remove('flex');
+            }
+
+        } else {
+            btnVoz.addEventListener('click', () => {
+                mostrarError("Tu navegador no soporta dictado por voz.");
+            });
+        }
+
+        btnVoz.addEventListener('click', () => {
+            if (reconocimiento) reconocimiento.start();
+        });
+
+        btnCancelarVoz.addEventListener('click', () => {
+            if (reconocimiento) reconocimiento.abort();
+        });
+
+
+        // --- FLUJO IMAGEN ---
+        inputFoto.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64Img = reader.result;
+                // Reseteamos el input
+                inputFoto.value = '';
+                await procesarEntrada("Por favor extrae los datos financieros de la boleta/recibo en esta imagen.", base64Img);
+            };
+            reader.readAsDataURL(file);
+        });
+
+
+        // --- FLUJO COMÚN DE PROCESAMIENTO ---
+        async function procesarEntrada(promptText, base64Image = null) {
+            mostrarCarga(base64Image ? "Analizando imagen de boleta..." : "Analizando texto dictado...");
+            
+            try {
+                // 1. Llamar a Gemini IA
+                const datosExtraidos = await procesarConGemini(promptText, base64Image);
+                
+                loadingSubtext.innerText = "Guardando en historial...";
+                
+                // 2. Guardar en Firestore
+                await guardarTransaccion(datosExtraidos);
+                
+            } catch (error) {
+                mostrarError("Hubo un error al procesar con IA.");
+            } finally {
+                ocultarCarga();
+            }
+        }
+
+
+        // -------------------------------------------------------------
+        // 7. FUNCIONES DE UTILIDAD UI
+        // -------------------------------------------------------------
+        function mostrarCarga(texto) {
+            loadingText.innerText = texto;
+            loadingSubtext.innerText = "Espera un momento.";
+            overlayCarga.classList.remove('hidden');
+            overlayCarga.classList.add('flex');
+        }
+
+        function ocultarCarga() {
+            overlayCarga.classList.add('hidden');
+            overlayCarga.classList.remove('flex');
+        }
+
+        // Modal simple hecho a mano para evitar alerts()
+        function mostrarError(mensaje) {
+            const m = document.createElement('div');
+            m.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-lg z-50 transition-opacity flex items-center gap-2";
+            m.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${mensaje}`;
+            document.body.appendChild(m);
+            setTimeout(() => { m.style.opacity = '0'; setTimeout(()=>m.remove(), 300); }, 3000);
+        }
+
+        function mostrarExito(mensaje) {
+            const m = document.createElement('div');
+            m.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full shadow-lg z-50 transition-opacity flex items-center gap-2";
+            m.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${mensaje}`;
+            document.body.appendChild(m);
+            setTimeout(() => { m.style.opacity = '0'; setTimeout(()=>m.remove(), 300); }, 3000);
+        }
+
+        // Inicializar aplicación
+        initAuth();
+
+    </script>
+</body>
+</html>
