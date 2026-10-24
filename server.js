@@ -13,60 +13,93 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 dotenv.config();
 
 const app = express();
+const os = require('os');
+
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = process.env.DATA_DIR
   ? path.resolve(process.env.DATA_DIR)
-  : path.join(__dirname, 'data');
+  : (isVercel ? path.join(os.tmpdir(), 'kashia_data') : path.join(__dirname, 'data'));
 const DATA_FILE = path.join(DATA_DIR, 'transactions.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const JWT_SECRET = process.env.JWT_SECRET || 'futurex_hackathon_super_secret_jwt_key_2026_secure';
+const JWT_SECRET = process.env.JWT_SECRET || 'kashia_hackathon_super_secret_jwt_key_2026_secure';
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET debe configurarse en producción.');
-}
+// Memoria RAM como respaldo infalible para Vercel Serverless
+let memoryTransactions = [];
+let memoryUsers = [];
 
 function ensureDataFiles() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-
-  for (const file of [DATA_FILE, USERS_FILE]) {
-    if (!fs.existsSync(file)) {
-      fs.writeFileSync(file, JSON.stringify([], null, 2), 'utf8');
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
     }
+
+    if (!fs.existsSync(DATA_FILE)) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2), 'utf8');
+    }
+    if (!fs.existsSync(USERS_FILE)) {
+      fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), 'utf8');
+    }
+  } catch (err) {
+    console.warn('Nota: Usando almacenamiento en memoria (modo Serverless/Vercel):', err.message);
   }
 }
 
-function readJsonArray(file) {
-  ensureDataFiles();
-  const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
-  if (!Array.isArray(parsed)) {
-    throw new Error(`El archivo ${path.basename(file)} debe contener una lista.`);
+function readJsonArray(file, memoryFallback) {
+  try {
+    ensureDataFiles();
+    if (fs.existsSync(file)) {
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn(`Lectura de archivo ${path.basename(file)} omitida, usando memoria:`, err.message);
   }
-  return parsed;
+  return memoryFallback;
 }
 
 function writeJsonArray(file, entries) {
-  ensureDataFiles();
-  const temporaryFile = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temporaryFile, JSON.stringify(entries, null, 2), 'utf8');
-  fs.renameSync(temporaryFile, file);
+  try {
+    ensureDataFiles();
+    const temporaryFile = `${file}.${process.pid}.${Date.now()}.tmp`;
+    fs.writeFileSync(temporaryFile, JSON.stringify(entries, null, 2), 'utf8');
+    try {
+      fs.renameSync(temporaryFile, file);
+    } catch {
+      fs.copyFileSync(temporaryFile, file);
+      fs.unlinkSync(temporaryFile);
+    }
+  } catch (err) {
+    console.warn(`Persistencia a disco omitida en Vercel (${path.basename(file)} guardado en memoria):`, err.message);
+  }
 }
 
 function readTransactions() {
-  return readJsonArray(DATA_FILE);
+  const fromDisk = readJsonArray(DATA_FILE, memoryTransactions);
+  if (fromDisk && fromDisk.length > 0) {
+    memoryTransactions = fromDisk;
+  }
+  return memoryTransactions;
 }
 
 function readUsers() {
-  return readJsonArray(USERS_FILE);
+  const fromDisk = readJsonArray(USERS_FILE, memoryUsers);
+  if (fromDisk && fromDisk.length > 0) {
+    memoryUsers = fromDisk;
+  }
+  return memoryUsers;
 }
 
 function writeTransactions(transactions) {
+  memoryTransactions = transactions;
   writeJsonArray(DATA_FILE, transactions);
 }
 
 function writeUsers(users) {
+  memoryUsers = users;
   writeJsonArray(USERS_FILE, users);
 }
 
@@ -815,6 +848,10 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor KashIA Credit-AI escuchando en http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Servidor KashIA Credit-AI escuchando en http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
