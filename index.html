@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KashIA | Asistente Financiero & Pasaporte Crediticio con IA</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #f0f7ff 0%, #f8fafc 90%);
+      color: #0f172a;
+    }
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Outfit', sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.85);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
+    }
+    .hero-gradient {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0284c7 100%);
+    }
+    .credit-gradient {
+      background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%);
+    }
+    .loader {
+      border: 4px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #2563eb;
+      border-radius: 9999px;
+      width: 44px;
+      height: 44px;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .pulse-glow {
+      animation: pulseGlow 1.8s infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
+      50% { box-shadow: 0 0 0 18px rgba(37, 99, 235, 0); }
+    }
+    .gauge-circle {
+      transition: stroke-dashoffset 1s ease-in-out;
+    }
+    
+    /* Dynamic Audio Wave Animation */
+    .wave-bar {
+      display: inline-block;
+      width: 5px;
+      background-color: #60a5fa;
+      border-radius: 9999px;
+      animation: soundWave 1.2s infinite ease-in-out;
+    }
+    .wave-bar:nth-child(1) { height: 16px; animation-delay: 0.1s; }
+    .wave-bar:nth-child(2) { height: 32px; animation-delay: 0.25s; }
+    .wave-bar:nth-child(3) { height: 48px; animation-delay: 0.4s; }
+    .wave-bar:nth-child(4) { height: 28px; animation-delay: 0.15s; }
+    .wave-bar:nth-child(5) { height: 14px; animation-delay: 0.3s; }
+
+    @keyframes soundWave {
+      0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
+      50% { transform: scaleY(1.2); opacity: 1; }
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #modal-passport, #modal-passport * {
+        visibility: visible;
+      }
+      #modal-passport {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ================= AUTH SECTION ================= -->
+  <div id="auth-panel" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 relative overflow-hidden">
+      <div class="absolute -right-12 -top-12 w-40 h-40 bg-blue-100 rounded-full blur-2xl opacity-60"></div>
+      
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold font-heading text-lg shadow-md">K</div>
+        <span class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 font-heading">KashIA</span>
+      </div>
+
+      <h1 id="auth-title" class="text-2xl font-bold text-slate-900 mt-2">Inicia sesión en KashIA</h1>
+      <p id="auth-description" class="text-sm text-slate-500 mt-1">Digitaliza tus finanzas por voz e imagen y desbloquea tu acceso al microcrédito formal.</p>
+
+      <form id="auth-form" class="mt-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nombre de tu Negocio / Emprendimiento</label>
+          <input id="auth-business" type="text" placeholder="Ej. Bodega Don Lucho, Taller Creativo"
+            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Correo Electrónico</label>
+          <input id="auth-email" type="email" required placeholder="negocio@ejemplo.com"
+            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Contraseña</label>
+          <input id="auth-password" type="password" required minlength="6" placeholder="••••••••"
+            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+          <span class="text-[11px] text-slate-400 mt-1 block">Mínimo 6 caracteres para mayor seguridad.</span>
+        </div>
+
+        <button id="auth-submit" type="submit" class="w-full rounded-xl hero-gradient text-white font-semibold py-3.5 shadow-lg shadow-blue-500/25 hover:opacity-95 transition active:scale-[0.99]">
+          Ingresar a KashIA
+        </button>
+      </form>
+
+      <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+        <p class="text-sm text-slate-500">
+          <span id="auth-toggle-label">¿Aún no tienes cuenta?</span>
+          <button id="auth-toggle" type="button" class="font-semibold text-blue-600 hover:text-blue-800 ml-1">Crear cuenta gratis</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= APP MAIN CONTENT ================= -->
+  <div id="app-content" class="hidden pb-20">
+
+    <!-- TOP NAVBAR -->
+    <nav class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3">
+      <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl hero-gradient text-white flex items-center justify-center font-bold font-heading text-lg shadow-md">
+            K
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-900 font-heading tracking-tight text-lg">KashIA</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Fase 2 MVP</span>
+            </div>
+            <p id="nav-business-name" class="text-xs text-slate-500 font-medium truncate max-w-[160px] md:max-w-xs">Mi Negocio</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Asistente de Voz Hablado (TTS Toggle) -->
+          <button id="btn-toggle-voice-feedback" title="Activar/Silenciar respuestas habladas de KashIA"
+            class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 transition flex items-center gap-1.5">
+            <i id="voice-feedback-icon" class="fa-solid fa-volume-high text-blue-600"></i>
+            <span class="hidden sm:inline" id="voice-feedback-label">Voz Activa</span>
+          </button>
+
+          <!-- Moneda Toggle -->
+          <button id="btn-currency" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 transition flex items-center gap-1.5">
+            <span class="text-blue-600 font-bold" id="currency-label">S/. Soles</span>
+            <i class="fa-solid fa-repeat text-[10px] text-slate-400"></i>
+          </button>
+
+          <!-- Botón Demo Rápida para Jurados -->
+          <button id="btn-demo-seed" title="Carga 9 transacciones de ejemplo para probar score y crédito al instante"
+            class="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 border border-amber-300 text-xs font-semibold hover:bg-amber-500/20 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+            <span class="hidden sm:inline">Datos Demo</span>
+          </button>
+
+          <!-- User status / Logout -->
+          <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl text-xs text-slate-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="user-email-display" class="hidden md:inline font-medium">usuario</span>
+            <button id="btn-logout" class="text-rose-500 hover:text-rose-700 ml-1 font-semibold" title="Cerrar sesión">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+
+      <!-- ================= HERO SCORE & CREDIT READINESS ================= -->
+      <section class="rounded-3xl hero-gradient text-white p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        <div class="absolute right-0 top-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          
+          <!-- Gauge & Score -->
+          <div class="lg:col-span-5 flex flex-col items-center sm:items-start text-center sm:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold tracking-wider uppercase mb-3 text-blue-100">
+              <i class="fa-solid fa-shield-halved text-emerald-300"></i> Credit Scoring Alternativo KashIA
+            </div>
+
+            <div class="flex items-center gap-5 mt-1">
+              <!-- Visual Score Circle -->
+              <div class="relative w-28 h-28 flex items-center justify-center">
+                <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.2)" stroke-width="8" fill="none" />
+                  <circle id="gauge-bar" cx="50" cy="50" r="42" stroke="#34d399" stroke-width="8" fill="none"
+                    stroke-dasharray="264" stroke-dashoffset="60" stroke-linecap="round" class="gauge-circle" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span id="score-number" class="text-3xl font-extrabold font-heading text-white tracking-tight">780</span>
+                  <span class="text-[10px] text-blue-100 uppercase tracking-widest font-semibold">de 950</span>
+                </div>
+              </div>
+
+              <div>
+                <span id="score-badge" class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950 inline-block mb-1">
+                  AA • Solvente
+                </span>
+                <h2 id="score-verdict" class="text-lg font-bold font-heading text-white leading-tight">
+                  Calificado para Microcrédito Formal
+                </h2>
+                <p class="text-xs text-blue-100 mt-1">Evaluado mediante flujo de caja digitalizado por KashIA.</p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-wrap gap-3 justify-center sm:justify-start w-full">
+              <!-- Botón Pasaporte Oficial -->
+              <button id="btn-open-passport" class="px-5 py-3 rounded-2xl bg-white text-blue-900 font-bold text-sm shadow-lg shadow-black/10 hover:bg-blue-50 transition active:scale-95 flex items-center gap-2">
+                <i class="fa-solid fa-file-invoice text-blue-600"></i>
+                <span>Ver Pasaporte Crediticio</span>
+              </button>
+              
+              <!-- Botón Copiloto -->
+              <button id="btn-open-copilot" class="px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 transition flex items-center gap-2">
+                <i class="fa-solid fa-brain text-amber-300"></i>
+                <span>Copiloto KashIA</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Credit Stats -->
+          <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15">
+              <p class="text-xs text-blue-200 font-semibold uppercase tracking-wider">Línea Sugerida</p>
+              <p id="stat-credito-sugerido" class="text-2xl font-bold font-heading mt-1 text-white">S/. 2,500</p>
+              <p class="text-[11px] text-emerald-300 mt-1"><i class="fa-solid fa-check-circle"></i> Sin aval hipotecario</p>
+            </div>
+
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15">
+              <p class="text-xs text-blue-200 font-semibold uppercase tracking-wider">Cuota Segura</p>
+              <p id="stat-cuota-maxima" class="text-2xl font-bold font-heading mt-1 text-white">S/. 320/m</p>
+              <p class="text-[11px] text-blue-100 mt-1">30% del margen neto</p>
+            </div>
+
+            <div class="col-span-2 sm:col-span-1 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15">
+              <p class="text-xs text-blue-200 font-semibold uppercase tracking-wider">Ahorro vs Usura</p>
+              <p id="stat-ahorro-usura" class="text-2xl font-bold font-heading mt-1 text-emerald-300">S/. 1,600</p>
+              <p class="text-[11px] text-blue-100 mt-1">Frente al "Gota a Gota"</p>
+            </div>
+
+            <div class="col-span-2 sm:col-span-3 bg-white/15 rounded-2xl p-3 text-xs flex items-center gap-3 border border-white/10">
+              <div class="w-8 h-8 rounded-full bg-emerald-400/20 text-emerald-300 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-shield-check"></i>
+              </div>
+              <p class="text-blue-50 leading-relaxed">
+                <strong>Impacto Social:</strong> KashIA transforma tus cobros por Yape, Plin y boletas de mercado en un historial formal para Cajas Municipales, erradicando la necesidad de prestamistas informales.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= FINANCIAL METRICS ROW ================= -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Saldo -->
+        <div class="glass-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Saldo Disponible</span>
+            <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+          </div>
+          <h3 id="saldo-actual" class="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900">S/. 0.00</h3>
+          <p id="saldo-estado-badge" class="text-xs font-semibold text-emerald-600 mt-1 flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> Flujo positivo
+          </p>
+        </div>
+
+        <!-- Ingresos -->
+        <div class="glass-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Ventas & Cobros</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-arrow-trend-up"></i>
+            </div>
+          </div>
+          <h3 id="ingresos-totales" class="text-2xl sm:text-3xl font-extrabold font-heading text-emerald-600">S/. 0.00</h3>
+          <p class="text-xs text-slate-400 mt-1">Entradas digitalizadas</p>
+        </div>
+
+        <!-- Gastos -->
+        <div class="glass-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Compras & Gastos</span>
+            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-arrow-trend-down"></i>
+            </div>
+          </div>
+          <h3 id="gastos-totales" class="text-2xl sm:text-3xl font-extrabold font-heading text-rose-600">S/. 0.00</h3>
+          <p class="text-xs text-slate-400 mt-1">Insumos y costos</p>
+        </div>
+
+        <!-- Margen Operativo -->
+        <div class="glass-card rounded-2xl p-5">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Margen Rentable</span>
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-percent"></i>
+            </div>
+          </div>
+          <h3 id="margen-porcentaje" class="text-2xl sm:text-3xl font-extrabold font-heading text-indigo-600">0%</h3>
+          <p id="margen-evaluacion" class="text-xs font-semibold text-slate-500 mt-1">Rendimiento neto</p>
+        </div>
+      </section>
+
+      <!-- ================= ZERO-UI MULTIMODAL CAPTURE (VOZ INTERACTIVA) ================= -->
+      <section class="glass-card rounded-3xl p-6 sm:p-7 relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-bold font-heading text-slate-900">Registrar Operación con Voz e Imagen</h2>
+              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">IA Activa</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500">Habla con libertad o sube tus comprobantes de Yape, Plin y boletas.</p>
+          </div>
+          <button id="btn-manual-toggle" class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <i class="fa-solid fa-keyboard"></i> Teclado manual
+          </button>
+        </div>
+
+        <!-- Botones de Acción Multimodal -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Botón VOZ SUPER INTERACTIVO -->
+          <button id="btn-voz" class="group relative rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50/70 p-5 text-left hover:border-blue-600 hover:shadow-lg transition active:scale-[0.99]">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-blue-500/30 group-hover:scale-105 group-hover:bg-blue-700 transition">
+                <i class="fa-solid fa-microphone"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-blue-600">Dictado por Voz Natural</span>
+                  <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 font-heading">Hablar a KashIA</h3>
+                <p class="text-xs text-slate-600 mt-0.5">Dile el monto y concepto. KashIA te responderá por voz.</p>
+              </div>
+            </div>
+          </button>
+
+          <!-- Botón IMAGEN / YAPE -->
+          <label for="input-foto" class="group relative rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50/70 p-5 text-left hover:border-emerald-600 hover:shadow-lg transition cursor-pointer active:scale-[0.99]">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30 group-hover:scale-105 group-hover:bg-emerald-700 transition">
+                <i class="fa-solid fa-camera"></i>
+              </div>
+              <div class="min-w-0">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Visión Multimodal IA</span>
+                <h3 class="text-base font-bold text-slate-900 font-heading">Subir Boleta o Captura Yape</h3>
+                <p class="text-xs text-slate-600 mt-0.5 truncate">Boletas físicas, recibos o pantallazos de Yape/Plin</p>
+              </div>
+            </div>
+            <input type="file" id="input-foto" accept="image/*" capture="environment" class="hidden" />
+          </label>
+        </div>
+
+        <!-- Chips de prueba rápida interactiva por voz -->
+        <div class="mt-4 pt-3 border-t border-slate-100">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Prueba rápida con frases de ejemplo (haz clic para probar):</p>
+          <div class="flex flex-wrap gap-2">
+            <button class="voice-chip px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-100 hover:text-blue-800 text-slate-700 text-xs font-medium border border-slate-200 transition flex items-center gap-1.5"
+              data-text="Yape de 45 soles por 3 menús del día">
+              <i class="fa-solid fa-play text-[10px] text-blue-500"></i> "Yape de 45 soles por 3 menús"
+            </button>
+            <button class="voice-chip px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-100 hover:text-blue-800 text-slate-700 text-xs font-medium border border-slate-200 transition flex items-center gap-1.5"
+              data-text="Gasté 120 soles en sacos de arroz en el mercado">
+              <i class="fa-solid fa-play text-[10px] text-rose-500"></i> "Gasté 120 soles en arroz"
+            </button>
+            <button class="voice-chip px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-100 hover:text-blue-800 text-slate-700 text-xs font-medium border border-slate-200 transition flex items-center gap-1.5"
+              data-text="Cobré 85 soles por venta de bebidas con Plin">
+              <i class="fa-solid fa-play text-[10px] text-emerald-500"></i> "Cobro Plin 85 soles bebidas"
+            </button>
+            <button class="voice-chip px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-100 hover:text-rose-800 text-slate-700 text-xs font-medium border border-slate-200 transition flex items-center gap-1.5"
+              data-text="Hola">
+              <i class="fa-solid fa-triangle-exclamation text-[10px] text-amber-500"></i> Probar "HOLA" (Ver validación)
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario Manual Plegable -->
+        <form id="form-manual" class="hidden mt-5 pt-5 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo</label>
+            <select id="manual-tipo" class="w-full rounded-xl border border-slate-200 p-2.5 text-sm bg-white">
+              <option value="ingreso">Ingreso (+)</option>
+              <option value="gasto">Gasto (-)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Monto (<span class="currency-symbol">S/.</span>)</label>
+            <input id="manual-monto" type="number" step="0.01" min="0.1" required placeholder="0.00" class="w-full rounded-xl border border-slate-200 p-2.5 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Descripción</label>
+            <input id="manual-desc" type="text" required placeholder="Ej: Venta de abarrotes" class="w-full rounded-xl border border-slate-200 p-2.5 text-sm" />
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full rounded-xl bg-slate-900 text-white font-semibold py-2.5 text-sm hover:bg-slate-800 transition">
+              Guardar
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ================= WARNING BANNER (CUANDO FALTA EL MONTO) ================= -->
+      <div id="voice-warning-banner" class="hidden rounded-2xl bg-amber-50 border-2 border-amber-300 p-4 transition duration-300 items-start gap-3 shadow-md">
+        <div class="w-10 h-10 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center text-lg shrink-0 mt-0.5">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-amber-950 font-heading text-sm" id="voice-warning-title">Falta el Monto o Precio</h4>
+            <button id="btn-close-warning" class="text-amber-700 hover:text-amber-900 text-xs font-bold">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+          </div>
+          <p class="text-xs text-amber-900 mt-1" id="voice-warning-message">
+            KashIA te escuchó, pero no detectó cuánto dinero fue. Para registrar la transacción, por favor indica el precio.
+          </p>
+          <div class="mt-3 flex items-center gap-2">
+            <button id="btn-retry-voice" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-microphone"></i>
+              <span>Dictar de nuevo con monto</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= MAIN 2-COLUMN SECTION: SIMULATOR & COPILOT ================= -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- SIMULADOR DE MICROCRÉDITO (Col 7) -->
+        <section class="lg:col-span-7 glass-card rounded-3xl p-6 sm:p-7 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-1">
+                <i class="fa-solid fa-calculator"></i> Inclusión Financiera
+              </div>
+              <h2 class="text-xl font-bold font-heading text-slate-900">Simulador de Microcrédito Formal</h2>
+            </div>
+            <span class="text-xs text-slate-400 font-medium">Anti "Gota a Gota"</span>
+          </div>
+
+          <!-- Sliders de Monto y Plazo -->
+          <div class="space-y-4 bg-slate-50/80 rounded-2xl p-5 border border-slate-200/60">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-600">Monto del Microcrédito</label>
+                <span id="sim-monto-label" class="text-lg font-bold font-heading text-blue-700">S/. 1,500</span>
+              </div>
+              <input id="sim-slider-monto" type="range" min="300" max="8000" step="100" value="1500"
+                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+              <div class="flex justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                <span>Min: S/. 300</span>
+                <span>Max: S/. 8,000</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-600">Plazo en Meses</label>
+                <span id="sim-plazo-label" class="text-sm font-bold text-slate-800">6 meses</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" data-plazo="3" class="btn-plazo py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:border-blue-500 transition">3 Meses</button>
+                <button type="button" data-plazo="6" class="btn-plazo py-2 rounded-xl text-xs font-semibold border-2 border-blue-600 bg-blue-50 text-blue-700 shadow-sm transition">6 Meses</button>
+                <button type="button" data-plazo="12" class="btn-plazo py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:border-blue-500 transition">12 Meses</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparativa Visual Formal vs Informal -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Microfinanciera Formal -->
+            <div class="rounded-2xl p-4 border-2 border-emerald-300 bg-emerald-50/50 relative overflow-hidden">
+              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-600 text-white tracking-wider">Cajas / Bancos Formales</span>
+              <p class="text-xs text-slate-600 mt-2">Cuota mensual formal:</p>
+              <h3 id="sim-cuota-formal" class="text-2xl font-bold font-heading text-emerald-800 mt-0.5">S/. 268/m</h3>
+              <p class="text-[11px] text-slate-500 mt-1">Interés mensual: ~2.1% (Regulado)</p>
+            </div>
+
+            <!-- Prestamista Informal Gota a Gota -->
+            <div class="rounded-2xl p-4 border border-rose-200 bg-rose-50/50">
+              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-rose-600 text-white tracking-wider">Prestamista "Gota a Gota"</span>
+              <p class="text-xs text-slate-600 mt-2">Cuota mensual usurera:</p>
+              <h3 id="sim-cuota-gota" class="text-2xl font-bold font-heading text-rose-700 mt-0.5">S/. 550/m</h3>
+              <p class="text-[11px] text-rose-600 font-semibold mt-1">Interés mensual: 20% (Extorsivo)</p>
+            </div>
+          </div>
+
+          <!-- Dictamen del Asistente -->
+          <div id="sim-veredicto-box" class="rounded-2xl bg-blue-50 p-4 border border-blue-200 text-xs text-slate-700 flex items-start gap-3">
+            <i class="fa-solid fa-circle-check text-blue-600 text-lg mt-0.5 shrink-0"></i>
+            <div>
+              <p class="font-bold text-blue-900" id="sim-veredicto-titulo">Evaluación de Viabilidad: ALTA</p>
+              <p class="mt-0.5 text-slate-600" id="sim-veredicto-mensaje">
+                Tu negocio genera suficiente flujo libre para cubrir esta cuota sin comprometer el abastecimiento de mercadería.
+              </p>
+              <p class="mt-2 text-emerald-700 font-bold" id="sim-ahorro-destacado">
+                🎉 Te ahorras S/. 1,692 al solicitar crédito formal con tu Pasaporte KashIA.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- COPILOTO FINANCIERO KASHIA (Col 5) -->
+        <section class="lg:col-span-5 glass-card rounded-3xl p-6 sm:p-7 space-y-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-brain"></i>
+                </div>
+                <h2 class="text-lg font-bold font-heading text-slate-900">Copiloto KashIA</h2>
+              </div>
+              <button id="btn-refresh-copilot" class="text-xs text-slate-400 hover:text-slate-600" title="Actualizar diagnóstico">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Recomendaciones estratégicas en tiempo real para optimizar tu rentabilidad y subir tu Score Crediticio.</p>
+
+            <!-- Lista de Consejos -->
+            <div id="copilot-cards" class="space-y-3">
+              <!-- Consejo 1 -->
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-sm mt-0.5">
+                  <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Optimiza tus compras de mercadería</h4>
+                  <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Agrupar compras los días martes en el mercado mayorista puede reducir tus costos de insumos en un 10%.</p>
+                </div>
+              </div>
+
+              <!-- Consejo 2 -->
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 text-sm mt-0.5">
+                  <i class="fa-solid fa-award"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Estrategia para subir a Score AAA</h4>
+                  <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Registra tus cobros de Yape/Plin durante 5 días consecutivos para alcanzar la tasa más baja en microfinancieras.</p>
+                </div>
+              </div>
+
+              <!-- Consejo 3 -->
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 text-sm mt-0.5">
+                  <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Protección del Capital Operativo</h4>
+                  <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Evita retirar más del 25% del saldo libre semanal para gastos personales del hogar.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 text-center">
+            <span class="text-[11px] text-slate-400 font-medium">
+              <i class="fa-solid fa-sparkles text-amber-500"></i> Modelo de recomendación financiera entrenado con Gemini
+            </span>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ================= HISTORIAL DE MOVIMIENTOS ================= -->
+      <section class="glass-card rounded-3xl p-6 sm:p-7">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 class="text-xl font-bold font-heading text-slate-900">Historial de Transacciones</h2>
+            <p class="text-xs text-slate-500">Movimientos digitalizados y categorizados por la IA.</p>
+          </div>
+
+          <!-- Filtros -->
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <button data-filter="all" class="btn-filter px-3 py-1.5 rounded-lg bg-white text-slate-800 shadow-sm transition">Todos</button>
+            <button data-filter="ingreso" class="btn-filter px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Ventas (+)</button>
+            <button data-filter="gasto" class="btn-filter px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Compras (-)</button>
+          </div>
+        </div>
+
+        <div id="lista-transacciones" class="space-y-3">
+          <!-- Transacciones renderizadas dinámicamente -->
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: PASAPORTE CREDITICIO OFICIAL KASHIA ================= -->
+  <div id="modal-passport" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-3xl bg-white rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-200 my-8 relative">
+      
+      <!-- Botón cerrar (no print) -->
+      <button id="btn-close-passport" class="no-print absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- PASAPORTE HEADER BANCARIO -->
+      <div class="border-b-2 border-slate-900 pb-6 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl hero-gradient text-white flex items-center justify-center font-bold font-heading text-xl shadow-md">
+              K
+            </div>
+            <div>
+              <span class="text-xs font-bold uppercase tracking-[0.25em] text-blue-600">KASHIA FINANCIAL ENGINE</span>
+              <h1 class="text-2xl font-black font-heading text-slate-900 uppercase tracking-tight">Pasaporte Financiero Oficial</h1>
+              <p class="text-xs text-slate-500">Certificado de Solvencia & Flujo de Caja para Microempresas Informales</p>
+            </div>
+          </div>
+          <div class="text-right sm:border-l sm:border-slate-200 sm:pl-6">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">ID DE CERTIFICADO</span>
+            <span id="pass-id" class="text-sm font-mono font-bold text-slate-900">KASH-984F2A10</span>
+            <span id="pass-date" class="text-[11px] text-slate-500 block mt-0.5">Emitido hoy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUERPO DEL PASAPORTE -->
+      <div class="space-y-6 text-slate-800 text-sm">
+
+        <!-- Banner de Calificación -->
+        <div class="credit-gradient text-white rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <span class="text-xs uppercase font-bold tracking-widest text-emerald-200">Score de Solvencia Alternativo</span>
+            <div class="flex items-center gap-3 mt-1">
+              <span id="pass-score" class="text-4xl font-extrabold font-heading">780</span>
+              <div>
+                <span id="pass-rango" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-md bg-white text-emerald-900">AA • Solvente</span>
+                <p class="text-xs text-emerald-100 mt-1">Perfil apto para microcrédito formal inmediato.</p>
+              </div>
+            </div>
+          </div>
+          <div class="text-center sm:text-right border-t sm:border-t-0 sm:border-l border-white/20 pt-3 sm:pt-0 sm:pl-6">
+            <span class="text-[11px] text-emerald-100 uppercase tracking-wider block">Línea de Crédito Sugerida</span>
+            <span id="pass-linea" class="text-2xl font-bold font-heading text-white">S/. 2,500</span>
+          </div>
+        </div>
+
+        <!-- Tabla Resumen Financiero Auditado -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Métricas de Flujo Auditadas por IA</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80">
+              <span class="text-xs text-slate-500 block">Ventas Mensuales</span>
+              <span id="pass-ingresos" class="text-lg font-bold font-heading text-slate-900">S/. 0</span>
+            </div>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80">
+              <span class="text-xs text-slate-500 block">Compras / Costos</span>
+              <span id="pass-gastos" class="text-lg font-bold font-heading text-slate-900">S/. 0</span>
+            </div>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80">
+              <span class="text-xs text-slate-500 block">Margen Operativo</span>
+              <span id="pass-margen" class="text-lg font-bold font-heading text-emerald-700">0%</span>
+            </div>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80">
+              <span class="text-xs text-slate-500 block">Cuota Máx. Segura</span>
+              <span id="pass-cuota" class="text-lg font-bold font-heading text-blue-700">S/. 0/m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dictamen Bancario -->
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Dictamen de Elegibilidad Crediticia</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            El presente titular registra un flujo de caja positivo respaldado mediante digitalización por voz y comprobantes digitales (Yape, Plin y boletas físicas). Su capacidad de amortización estimada permite atender una obligación mensual sin deteriorar su capital de trabajo.
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-600">
+            <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200">Cajas Municipales (CMAC)</span>
+            <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200">Mibanco</span>
+            <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200">Compartamos Financiera</span>
+            <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200">Fintechs de Capital de Trabajo</span>
+          </div>
+        </div>
+
+        <!-- Validación Criptográfica & QR -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-200 text-xs text-slate-500">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-slate-900 text-white rounded-lg flex items-center justify-center font-mono text-xs">
+              <i class="fa-solid fa-qrcode text-2xl"></i>
+            </div>
+            <div>
+              <span class="font-bold text-slate-800 block">Validación Criptográfica SHA-256</span>
+              <span id="pass-hash" class="font-mono text-[10px] text-slate-400">4E89B1A2C30F987D</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="font-bold text-slate-800 block">Sello Digital KashIA</span>
+            <span class="text-[10px] text-emerald-600 font-semibold">✓ Verificado con Inteligencia Artificial</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTONES DE ACCIÓN (no print) -->
+      <div class="no-print mt-8 pt-6 border-t border-slate-200 flex flex-wrap items-center justify-end gap-3">
+        <button id="btn-print-passport" class="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition flex items-center gap-2">
+          <i class="fa-solid fa-print"></i>
+          <span>Imprimir / Guardar en PDF para el Banco</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: COPILOTO DETALLADO ================= -->
+  <div id="modal-copilot" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div>
+            <h3 class="font-bold font-heading text-slate-900 text-lg">Diagnóstico de Salud Financiera</h3>
+            <span class="text-xs text-slate-500">Impulsado por KashIA con Gemini AI</span>
+          </div>
+        </div>
+        <button id="btn-close-copilot" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs text-slate-700">
+        <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+          <h4 class="font-bold text-blue-900 mb-1">Estado General del Negocio</h4>
+          <p id="copilot-estado-text" class="leading-relaxed text-slate-600">
+            Tu negocio presenta estabilidad operativa. Al mantener tus gastos de mercadería por debajo del 65% de tus ventas totales, conservas liquidez suficiente para pagar una cuota de crédito sin estrés.
+          </p>
+        </div>
+
+        <div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+          <h4 class="font-bold text-emerald-900 mb-1">Pasos Recomendados para tu Crédito</h4>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 mt-1">
+            <li>Sigue registrando comprobantes de Yape y Plin diariamente.</li>
+            <li>No retires efectivo del negocio para gastos no relacionados con la actividad comercial.</li>
+            <li>Descarga tu Pasaporte Financiero cuando alcances 15 transacciones para obtener la mejor tasa de interés.</li>
+          </ul>
+        </div>
+      </div>
+
+      <button id="btn-dismiss-copilot" class="mt-6 w-full rounded-xl bg-slate-900 text-white font-semibold py-3 text-sm hover:bg-slate-800 transition">
+        Entendido
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= OVERLAYS (VOZ Y CARGA) ================= -->
+  <!-- Overlay Carga IA -->
+  <div id="overlay-carga" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-md items-center justify-center flex-col text-white p-4">
+    <div class="loader mb-4"></div>
+    <p id="loading-text" class="text-xl font-bold font-heading text-center">Analizando con Inteligencia Artificial...</p>
+    <p id="loading-subtext" class="mt-2 text-sm text-slate-300 text-center max-w-sm">Extrayendo tipo, monto y categoría del comprobante.</p>
+  </div>
+
+  <!-- Overlay Escucha de Voz Ultra-Interactivo -->
+  <div id="overlay-voz" class="fixed inset-0 z-50 hidden bg-blue-950/95 backdrop-blur-md items-center justify-center flex-col text-white p-6">
+    <!-- Icono animado con ondas visuales -->
+    <div class="relative mb-6 flex items-center justify-center">
+      <div class="w-28 h-28 rounded-full bg-blue-600 flex items-center justify-center text-4xl pulse-glow shadow-2xl shadow-blue-500/60 z-10">
+        <i class="fa-solid fa-microphone text-white"></i>
+      </div>
+      <!-- Equalizer Wave Bars -->
+      <div class="absolute -bottom-4 flex items-center gap-1.5 z-20">
+        <span class="wave-bar"></span>
+        <span class="wave-bar"></span>
+        <span class="wave-bar"></span>
+        <span class="wave-bar"></span>
+        <span class="wave-bar"></span>
+      </div>
+    </div>
+
+    <h2 class="text-2xl font-bold font-heading text-center">KashIA te está escuchando...</h2>
+    
+    <!-- Burbuja de Transcripción en Tiempo Real -->
+    <div class="mt-4 px-6 py-3.5 rounded-2xl bg-white/10 border border-white/20 max-w-md w-full text-center min-h-[60px] flex items-center justify-center">
+      <p id="live-speech-transcript" class="text-sm text-blue-100 italic">
+        "Habla ahora... por ejemplo: 'Vendí 45 soles por Yape'"
+      </p>
+    </div>
+
+    <!-- Guía y tips -->
+    <div class="mt-6 text-center max-w-sm">
+      <p class="text-xs text-blue-200">
+        <span class="font-bold text-amber-300"><i class="fa-solid fa-lightbulb"></i> Importante:</span> Recuerda incluir el monto o precio para que KashIA lo anote en tu balance.
+      </p>
+    </div>
+
+    <button id="btn-cancelar-voz" class="mt-8 px-8 py-3 bg-white/15 hover:bg-white/25 rounded-full text-xs font-bold uppercase tracking-wider transition border border-white/25">
+      Cancelar
+    </button>
+  </div>
+
+  <!-- ================= JAVASCRIPT ================= -->
+  <script>
+    // State
+    let currentCurrency = 'PEN'; // 'PEN' (S/.) o 'USD' ($)
+    let isRegisterMode = false;
+    let transactionsCache = [];
+    let creditProfileCache = null;
+    let currentFilter = 'all';
+    let voiceFeedbackEnabled = true;
+
+    // Web Audio Synthesizer (Chimes for UI feedback without external files)
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(freq = 520, duration = 0.1, type = 'sine') {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // audio context blocked or not supported
+      }
+    }
+
+    function playListeningChime() {
+      playTone(523, 0.08);
+      setTimeout(() => playTone(659, 0.12), 90);
+    }
+
+    function playSuccessChime() {
+      playTone(523, 0.08);
+      setTimeout(() => playTone(659, 0.08), 80);
+      setTimeout(() => playTone(784, 0.15), 160);
+    }
+
+    function playWarningChime() {
+      playTone(440, 0.1);
+      setTimeout(() => playTone(349, 0.18), 110);
+    }
+
+    // Text to Speech Voice Response
+    function speakKashIA(message) {
+      if (!voiceFeedbackEnabled || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = 'es-PE';
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+      
+      // Intentar seleccionar voz en español si está disponible
+      const voices = window.speechSynthesis.getVoices();
+      const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+      if (spanishVoice) utterance.voice = spanishVoice;
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Currency Formatter
+    function getFormatter() {
+      return new Intl.NumberFormat(currentCurrency === 'PEN' ? 'es-PE' : 'en-US', {
+        style: 'currency',
+        currency: currentCurrency,
+        minimumFractionDigits: 2,
+      });
+    }
+
+    function formatMoney(amount) {
+      const num = Number(amount || 0);
+      return getFormatter().format(num);
+    }
+
+    function updateCurrencyLabels() {
+      const isPen = currentCurrency === 'PEN';
+      document.getElementById('currency-label').textContent = isPen ? 'S/. Soles' : '$ USD';
+      document.querySelectorAll('.currency-symbol').forEach(el => {
+        el.textContent = isPen ? 'S/.' : '$';
+      });
+      renderDashboard();
+    }
+
+    // Elements
+    const authPanel = document.getElementById('auth-panel');
+    const appContent = document.getElementById('app-content');
+    const authForm = document.getElementById('auth-form');
+    const authTitle = document.getElementById('auth-title');
+    const authDescription = document.getElementById('auth-description');
+    const authSubmit = document.getElementById('auth-submit');
+    const authToggle = document.getElementById('auth-toggle');
+    const authToggleLabel = document.getElementById('auth-toggle-label');
+    const authEmail = document.getElementById('auth-email');
+    const authPassword = document.getElementById('auth-password');
+    const authBusiness = document.getElementById('auth-business');
+    const navBusinessName = document.getElementById('nav-business-name');
+    const userEmailDisplay = document.getElementById('user-email-display');
+
+    const saldoActual = document.getElementById('saldo-actual');
+    const saldoEstadoBadge = document.getElementById('saldo-estado-badge');
+    const ingresosTotales = document.getElementById('ingresos-totales');
+    const gastosTotales = document.getElementById('gastos-totales');
+    const margenPorcentaje = document.getElementById('margen-porcentaje');
+    const margenEvaluacion = document.getElementById('margen-evaluacion');
+
+    const scoreNumber = document.getElementById('score-number');
+    const gaugeBar = document.getElementById('gauge-bar');
+    const scoreBadge = document.getElementById('score-badge');
+    const scoreVerdict = document.getElementById('score-verdict');
+    const statCreditoSugerido = document.getElementById('stat-credito-sugerido');
+    const statCuotaMaxima = document.getElementById('stat-cuota-maxima');
+    const statAhorroUsura = document.getElementById('stat-ahorro-usura');
+
+    const listaTransacciones = document.getElementById('lista-transacciones');
+    const overlayCarga = document.getElementById('overlay-carga');
+    const overlayVoz = document.getElementById('overlay-voz');
+    const loadingText = document.getElementById('loading-text');
+    const loadingSubtext = document.getElementById('loading-subtext');
+    const liveSpeechTranscript = document.getElementById('live-speech-transcript');
+
+    // Warning Banner Elements
+    const voiceWarningBanner = document.getElementById('voice-warning-banner');
+    const voiceWarningTitle = document.getElementById('voice-warning-title');
+    const voiceWarningMessage = document.getElementById('voice-warning-message');
+    const btnCloseWarning = document.getElementById('btn-close-warning');
+    const btnRetryVoice = document.getElementById('btn-retry-voice');
+
+    // Modals
+    const modalPassport = document.getElementById('modal-passport');
+    const modalCopilot = document.getElementById('modal-copilot');
+
+    // Toast Notification
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 rounded-2xl px-5 py-3 text-sm font-semibold shadow-2xl z-[70] text-white flex items-center gap-2 ${
+        type === 'error' ? 'bg-rose-600' : (type === 'warning' ? 'bg-amber-600' : 'bg-slate-900')
+      }`;
+      const icon = type === 'error' ? 'fa-triangle-exclamation text-rose-300' : (type === 'warning' ? 'fa-circle-exclamation text-amber-200' : 'fa-circle-check text-emerald-400');
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${escapeHtml(message)}</span>`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3200);
+    }
+
+    function showWarningBanner(title, message) {
+      voiceWarningTitle.textContent = title;
+      voiceWarningMessage.textContent = message;
+      voiceWarningBanner.classList.remove('hidden');
+      voiceWarningBanner.classList.add('flex');
+      voiceWarningBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideWarningBanner() {
+      voiceWarningBanner.classList.add('hidden');
+      voiceWarningBanner.classList.remove('flex');
+    }
+
+    btnCloseWarning.addEventListener('click', hideWarningBanner);
+    btnRetryVoice.addEventListener('click', () => {
+      hideWarningBanner();
+      startVoiceListening();
+    });
+
+    function showLoader(title, subtitle = 'KashIA está analizando la entrada con IA.') {
+      loadingText.textContent = title;
+      loadingSubtext.textContent = subtitle;
+      overlayCarga.classList.remove('hidden');
+      overlayCarga.classList.add('flex');
+    }
+
+    function hideLoader() {
+      overlayCarga.classList.add('hidden');
+      overlayCarga.classList.remove('flex');
+    }
+
+    function escapeHtml(val) {
+      return String(val || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    }
+
+    // Toggle Voice Feedback
+    const btnToggleVoice = document.getElementById('btn-toggle-voice-feedback');
+    const voiceIcon = document.getElementById('voice-feedback-icon');
+    const voiceLabel = document.getElementById('voice-feedback-label');
+
+    btnToggleVoice.addEventListener('click', () => {
+      voiceFeedbackEnabled = !voiceFeedbackEnabled;
+      if (voiceFeedbackEnabled) {
+        voiceIcon.className = 'fa-solid fa-volume-high text-blue-600';
+        voiceLabel.textContent = 'Voz Activa';
+        showToast('Respuestas habladas activadas');
+        speakKashIA('KashIA responderá con voz.');
+      } else {
+        voiceIcon.className = 'fa-solid fa-volume-xmark text-slate-400';
+        voiceLabel.textContent = 'Silenciado';
+        showToast('Respuestas habladas silenciadas', 'warning');
+      }
+    });
+
+    // Auth Mode UI
+    function updateAuthMode() {
+      authTitle.textContent = isRegisterMode ? 'Crear Cuenta en KashIA' : 'Inicia Sesión en KashIA';
+      authDescription.textContent = isRegisterMode
+        ? 'Digitaliza tu negocio y obtén tu Pasaporte Crediticio formal sin costo.'
+        : 'Accede a tus registros financieros privados y perfil de crédito.';
+      authSubmit.textContent = isRegisterMode ? 'Crear cuenta gratis' : 'Ingresar a KashIA';
+      authToggleLabel.textContent = isRegisterMode ? '¿Ya tienes una cuenta?' : '¿Aún no tienes cuenta?';
+      authToggle.textContent = isRegisterMode ? 'Inicia sesión' : 'Crear cuenta gratis';
+    }
+
+    function setAuthenticated(user) {
+      authPanel.classList.add('hidden');
+      appContent.classList.remove('hidden');
+      userEmailDisplay.textContent = user.email;
+      navBusinessName.textContent = user.businessName || 'Mi Negocio';
+      loadAllFinancialData();
+    }
+
+    function setUnauthenticated() {
+      appContent.classList.add('hidden');
+      authPanel.classList.remove('hidden');
+    }
+
+    // Data Fetching
+    async function loadAllFinancialData() {
+      try {
+        const [txnsRes, creditRes] = await Promise.all([
+          fetch('/api/transactions'),
+          fetch('/api/credit-profile'),
+        ]);
+
+        if (txnsRes.status === 401 || creditRes.status === 401) {
+          setUnauthenticated();
+          return;
+        }
+
+        transactionsCache = await txnsRes.json();
+        creditProfileCache = await creditRes.json();
+
+        renderDashboard();
+        renderTransactions();
+        updateSimulator();
+      } catch (err) {
+        console.error(err);
+        showToast('Error al sincronizar datos financieros.', 'error');
+      }
+    }
+
+    // Render Metrics & Credit Score Gauge
+    function renderDashboard() {
+      if (!creditProfileCache) return;
+      const p = creditProfileCache;
+
+      // Financial Metrics
+      saldoActual.textContent = formatMoney(p.saldo);
+      ingresosTotales.textContent = formatMoney(p.totalIngresos);
+      gastosTotales.textContent = formatMoney(p.totalGastos);
+      margenPorcentaje.textContent = `${p.margenOperativo}%`;
+
+      if (p.saldo >= 0) {
+        saldoEstadoBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Flujo positivo`;
+        saldoEstadoBadge.className = 'text-xs font-semibold text-emerald-600 mt-1 flex items-center gap-1';
+      } else {
+        saldoEstadoBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Déficit operativo`;
+        saldoEstadoBadge.className = 'text-xs font-semibold text-rose-600 mt-1 flex items-center gap-1';
+      }
+
+      margenEvaluacion.textContent = p.margenOperativo >= 20 ? 'Excelente rentabilidad' : (p.margenOperativo > 0 ? 'Rentabilidad estable' : 'Requiere optimización');
+
+      // Credit Score & Gauge
+      scoreNumber.textContent = p.score;
+      scoreBadge.textContent = p.rango;
+      scoreVerdict.textContent = p.etiqueta;
+
+      statCreditoSugerido.textContent = formatMoney(p.creditoSugerido6Meses || 1500);
+      statCuotaMaxima.textContent = `${formatMoney(p.cuotaMaximaSugerida || 250)}/m`;
+      statAhorroUsura.textContent = formatMoney(p.ahorroFrenteUsura || 1200);
+
+      // Animate Circular Gauge
+      const pct = Math.max(0, Math.min(1, (p.score - 300) / 650));
+      const offset = 264 - (pct * 264);
+      gaugeBar.style.strokeDashoffset = offset;
+
+      if (p.score >= 700) {
+        gaugeBar.setAttribute('stroke', '#34d399'); // emerald
+        scoreBadge.className = 'px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950 inline-block mb-1';
+      } else if (p.score >= 580) {
+        gaugeBar.setAttribute('stroke', '#60a5fa'); // blue
+        scoreBadge.className = 'px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-300 text-blue-950 inline-block mb-1';
+      } else {
+        gaugeBar.setAttribute('stroke', '#fbbf24'); // amber
+        scoreBadge.className = 'px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-amber-400 text-amber-950 inline-block mb-1';
+      }
+    }
+
+    // Render Transactions List
+    function renderTransactions() {
+      const filtered = transactionsCache.filter(item => {
+        if (currentFilter === 'ingreso') return item.tipo === 'ingreso';
+        if (currentFilter === 'gasto') return item.tipo === 'gasto';
+        return true;
+      });
+
+      if (!filtered.length) {
+        listaTransacciones.innerHTML = `
+          <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/70 p-8 text-center text-slate-500">
+            <div class="w-12 h-12 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
+              <i class="fa-solid fa-receipt"></i>
+            </div>
+            <p class="font-bold font-heading text-slate-700">Sin movimientos registrados</p>
+            <p class="text-xs text-slate-500 mt-1">Dicta por voz o sube una captura de Yape/boleta para comenzar.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listaTransacciones.innerHTML = filtered.map(t => {
+        const isIngreso = t.tipo === 'ingreso';
+        const sign = isIngreso ? '+' : '-';
+        const color = isIngreso ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700';
+        const icon = isIngreso ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+        
+        let sourceBadge = `<span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold"><i class="fa-solid fa-keyboard mr-1"></i>Manual</span>`;
+        if (t.source === 'voice') {
+          sourceBadge = `<span class="text-[10px] px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 font-semibold"><i class="fa-solid fa-microphone mr-1"></i>Voz KashIA</span>`;
+        } else if (t.source === 'image') {
+          sourceBadge = `<span class="text-[10px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 font-semibold"><i class="fa-solid fa-camera mr-1"></i>Yape / Boleta</span>`;
+        }
+
+        const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Reciente';
+
+        return `
+          <div class="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-3.5 hover:shadow-sm transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-11 h-11 rounded-xl ${color} flex items-center justify-center text-base shrink-0">
+                <i class="fa-solid ${icon}"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="font-bold text-slate-900 text-sm truncate">${escapeHtml(t.descripcion)}</p>
+                  ${sourceBadge}
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                  <span>${escapeHtml(t.categoria || 'Comercial')}</span>
+                  <span>•</span>
+                  <span>${dateStr}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="text-base font-extrabold font-heading ${isIngreso ? 'text-emerald-600' : 'text-slate-800'}">
+                ${sign}${formatMoney(t.monto)}
+              </span>
+              <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 transition p-1" title="Eliminar movimiento">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Delete Transaction
+    window.deleteTransaction = async function(id) {
+      if (!confirm('¿Eliminar esta transacción?')) return;
+      try {
+        const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Transacción eliminada.');
+          await loadAllFinancialData();
+        }
+      } catch (err) {
+        showToast('No se pudo eliminar.', 'error');
+      }
+    };
+
+    // Microcredit Simulator Logic
+    let simPlazoActual = 6;
+    const simSliderMonto = document.getElementById('sim-slider-monto');
+    const simMontoLabel = document.getElementById('sim-monto-label');
+    const simPlazoLabel = document.getElementById('sim-plazo-label');
+    const simCuotaFormal = document.getElementById('sim-cuota-formal');
+    const simCuotaGota = document.getElementById('sim-cuota-gota');
+    const simVeredictoTitulo = document.getElementById('sim-veredicto-titulo');
+    const simVeredictoMensaje = document.getElementById('sim-veredicto-mensaje');
+    const simAhorroDestacado = document.getElementById('sim-ahorro-destacado');
+
+    async function updateSimulator() {
+      const monto = Number(simSliderMonto.value);
+      simMontoLabel.textContent = formatMoney(monto);
+      simPlazoLabel.textContent = `${simPlazoActual} meses`;
+
+      try {
+        const res = await fetch('/api/credit-simulator', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ monto, plazoMeses: simPlazoActual }),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        simCuotaFormal.textContent = `${formatMoney(data.cuotaFormal)}/m`;
+        simCuotaGota.textContent = `${formatMoney(data.cuotaGota)}/m`;
+        simVeredictoTitulo.textContent = `Evaluación de Viabilidad: ${data.viabilidad}`;
+        simVeredictoMensaje.textContent = data.mensaje;
+        simAhorroDestacado.textContent = `🎉 Te ahorras ${formatMoney(data.ahorroTotal)} al solicitar crédito formal con tu Pasaporte KashIA.`;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    simSliderMonto.addEventListener('input', updateSimulator);
+    document.querySelectorAll('.btn-plazo').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-plazo').forEach(b => {
+          b.className = 'btn-plazo py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:border-blue-500 transition';
+        });
+        btn.className = 'btn-plazo py-2 rounded-xl text-xs font-semibold border-2 border-blue-600 bg-blue-50 text-blue-700 shadow-sm transition';
+        simPlazoActual = Number(btn.getAttribute('data-plazo'));
+        updateSimulator();
+      });
+    });
+
+    // Passport Modal Logic
+    document.getElementById('btn-open-passport').addEventListener('click', async () => {
+      try {
+        showLoader('Generando Pasaporte Crediticio Oficial KashIA...', 'Firmando reporte financiero con validación criptográfica SHA-256.');
+        const res = await fetch('/api/credit-passport');
+        if (!res.ok) throw new Error('Error al generar pasaporte.');
+        const p = await res.json();
+
+        document.getElementById('pass-id').textContent = p.passportId;
+        document.getElementById('pass-date').textContent = p.issueDate;
+        document.getElementById('pass-score').textContent = p.profile.score;
+        document.getElementById('pass-rango').textContent = p.profile.rango;
+        document.getElementById('pass-linea').textContent = formatMoney(p.profile.creditoSugerido6Meses);
+
+        document.getElementById('pass-ingresos').textContent = formatMoney(p.profile.totalIngresos);
+        document.getElementById('pass-gastos').textContent = formatMoney(p.profile.totalGastos);
+        document.getElementById('pass-margen').textContent = `${p.profile.margenOperativo}%`;
+        document.getElementById('pass-cuota').textContent = `${formatMoney(p.profile.cuotaMaximaSugerida)}/m`;
+        document.getElementById('pass-hash').textContent = p.verificationHash;
+
+        hideLoader();
+        modalPassport.classList.remove('hidden');
+        modalPassport.classList.add('flex');
+      } catch (err) {
+        hideLoader();
+        showToast('No se pudo generar el pasaporte.', 'error');
+      }
+    });
+
+    document.getElementById('btn-close-passport').addEventListener('click', () => {
+      modalPassport.classList.add('hidden');
+      modalPassport.classList.remove('flex');
+    });
+
+    document.getElementById('btn-print-passport').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Copilot Modal Logic
+    document.getElementById('btn-open-copilot').addEventListener('click', () => {
+      modalCopilot.classList.remove('hidden');
+      modalCopilot.classList.add('flex');
+    });
+    document.getElementById('btn-close-copilot').addEventListener('click', () => {
+      modalCopilot.classList.add('hidden');
+      modalCopilot.classList.remove('flex');
+    });
+    document.getElementById('btn-dismiss-copilot').addEventListener('click', () => {
+      modalCopilot.classList.add('hidden');
+      modalCopilot.classList.remove('flex');
+    });
+
+    // Filter Buttons
+    document.querySelectorAll('.btn-filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-filter').forEach(b => {
+          b.className = 'btn-filter px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+        });
+        btn.className = 'btn-filter px-3 py-1.5 rounded-lg bg-white text-slate-800 shadow-sm transition font-bold';
+        currentFilter = btn.getAttribute('data-filter');
+        renderTransactions();
+      });
+    });
+
+    // Currency Switcher
+    document.getElementById('btn-currency').addEventListener('click', () => {
+      currentCurrency = currentCurrency === 'PEN' ? 'USD' : 'PEN';
+      updateCurrencyLabels();
+    });
+
+    // Seed Demo Data for Hackathon Judges
+    document.getElementById('btn-demo-seed').addEventListener('click', async () => {
+      try {
+        showLoader('Cargando datos de prueba KashIA...', 'Inyectando 9 transacciones representativas de un microcomercio.');
+        const res = await fetch('/api/demo/seed', { method: 'POST' });
+        const data = await res.json();
+        hideLoader();
+        if (res.ok) {
+          playSuccessChime();
+          showToast('¡Datos demo cargados! Tu Score y Pasaporte KashIA ya están listos.');
+          speakKashIA('He cargado los datos de ejemplo. Tu Score Crediticio ahora está en calificación preferencial.');
+          await loadAllFinancialData();
+        } else {
+          showToast(data.error || 'Error al cargar datos demo', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        showToast('Error al conectar.', 'error');
+      }
+    });
+
+    // AI Voice & Image Interpretation
+    async function processTransactionAI(texto, file = null) {
+      try {
+        hideWarningBanner();
+        showLoader(
+          file ? 'Analizando Comprobante con KashIA...' : 'Interpretando Voz con KashIA...',
+          file ? 'Leyendo imagen (Yape, Plin o boleta física)...' : 'Analizando intención y montos...'
+        );
+
+        let res;
+        if (file) {
+          const fd = new FormData();
+          fd.append('image', file);
+          res = await fetch('/api/transactions/extract', { method: 'POST', body: fd });
+        } else {
+          res = await fetch('/api/transactions/extract', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: texto }),
+          });
+        }
+
+        const extracted = await res.json();
+
+        // VALIDACIÓN: Si no hubo monto o la IA devolvió error
+        if (!res.ok || extracted.error) {
+          hideLoader();
+          playWarningChime();
+          const errorMsg = extracted.error || 'No se pudo interpretar la transacción.';
+          showWarningBanner('Falta el monto o precio', errorMsg);
+          speakKashIA(errorMsg);
+          return;
+        }
+
+        // Si sí es válida, guardar automáticamente
+        const saveRes = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tipo: extracted.tipo,
+            monto: extracted.monto,
+            descripcion: extracted.descripcion,
+            categoria: extracted.categoria,
+            source: extracted.source || (file ? 'image' : 'voice'),
+          }),
+        });
+
+        if (!saveRes.ok) throw new Error('Error al guardar en el servidor.');
+
+        hideLoader();
+        playSuccessChime();
+        const actionWord = extracted.tipo === 'ingreso' ? 'ingreso' : 'gasto';
+        const confirmationSpeech = `¡Listo! Registré un ${actionWord} de ${extracted.monto} soles en ${extracted.categoria || 'el negocio'}.`;
+        
+        showToast(`✓ Registrado: ${extracted.tipo === 'ingreso' ? 'Venta' : 'Gasto'} de ${formatMoney(extracted.monto)}`);
+        speakKashIA(confirmationSpeech);
+
+        await loadAllFinancialData();
+      } catch (err) {
+        hideLoader();
+        console.error(err);
+        playWarningChime();
+        showToast(err.message || 'No se pudo procesar la entrada.', 'error');
+      }
+    }
+
+    // Web Speech API
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+
+    if (SpeechRec) {
+      recognition = new SpeechRec();
+      recognition.lang = 'es-PE';
+      recognition.interimResults = true; // Permite ver palabras en tiempo real mientras hablas
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        playListeningChime();
+        liveSpeechTranscript.textContent = 'Escuchando en vivo... habla con naturalidad.';
+        overlayVoz.classList.remove('hidden');
+        overlayVoz.classList.add('flex');
+      };
+
+      recognition.onresult = (e) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          transcript += e.results[i][0].transcript;
+        }
+        liveSpeechTranscript.textContent = `"${transcript}"`;
+
+        // Si es el resultado final
+        if (e.results[0].isFinal) {
+          overlayVoz.classList.add('hidden');
+          overlayVoz.classList.remove('flex');
+          processTransactionAI(transcript, null);
+        }
+      };
+
+      recognition.onerror = (e) => {
+        overlayVoz.classList.add('hidden');
+        overlayVoz.classList.remove('flex');
+        if (e.error !== 'aborted') {
+          playWarningChime();
+          showToast('No se capturó audio con claridad.', 'error');
+        }
+      };
+
+      recognition.onend = () => {
+        overlayVoz.classList.add('hidden');
+        overlayVoz.classList.remove('flex');
+      };
+    }
+
+    function startVoiceListening() {
+      if (!recognition) {
+        const promptText = prompt('Dictado por voz no soportado en este navegador. Escribe lo que dirías:\nEj: "Vendí 45 soles por Yape"');
+        if (promptText) processTransactionAI(promptText, null);
+        return;
+      }
+      try {
+        recognition.start();
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+
+    document.getElementById('btn-voz').addEventListener('click', startVoiceListening);
+
+    document.getElementById('btn-cancelar-voz').addEventListener('click', () => {
+      if (recognition) recognition.abort();
+      overlayVoz.classList.add('hidden');
+      overlayVoz.classList.remove('flex');
+    });
+
+    // Click en Chips de Ejemplo
+    document.querySelectorAll('.voice-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const text = chip.getAttribute('data-text');
+        processTransactionAI(text, null);
+      });
+    });
+
+    document.getElementById('input-foto').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      await processTransactionAI('', file);
+      e.target.value = '';
+    });
+
+    // Manual Form Toggle
+    const btnManualToggle = document.getElementById('btn-manual-toggle');
+    const formManual = document.getElementById('form-manual');
+    btnManualToggle.addEventListener('click', () => {
+      formManual.classList.toggle('hidden');
+    });
+
+    formManual.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const tipo = document.getElementById('manual-tipo').value;
+      const monto = Number(document.getElementById('manual-monto').value);
+      const descripcion = document.getElementById('manual-desc').value;
+
+      try {
+        showLoader('Guardando registro...');
+        const res = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo, monto, descripcion, source: 'manual' }),
+        });
+        hideLoader();
+        if (res.ok) {
+          playSuccessChime();
+          showToast('Transacción registrada.');
+          speakKashIA(`Anoté un ${tipo} de ${monto} soles.`);
+          formManual.reset();
+          formManual.classList.add('hidden');
+          await loadAllFinancialData();
+        } else {
+          showToast('Error al guardar.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        showToast('Error de conexión.', 'error');
+      }
+    });
+
+    // Auth Form Logic
+    authToggle.addEventListener('click', () => {
+      isRegisterMode = !isRegisterMode;
+      updateAuthMode();
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authSubmit.disabled = true;
+      authSubmit.classList.add('opacity-60');
+
+      try {
+        const url = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authEmail.value,
+            password: authPassword.value,
+            businessName: authBusiness.value || 'Mi Negocio',
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Fallo de autenticación.');
+
+        authPassword.value = '';
+        setAuthenticated(data.user);
+        playSuccessChime();
+        showToast(`¡Bienvenido a KashIA!`);
+        speakKashIA('Bienvenido a KashIA. Estoy listo para ordenar tus finanzas.');
+      } catch (err) {
+        playWarningChime();
+        showToast(err.message, 'error');
+      } finally {
+        authSubmit.disabled = false;
+        authSubmit.classList.remove('opacity-60');
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setUnauthenticated();
+    });
+
+    // Session Restore
+    async function restoreSession() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (!res.ok) {
+          setUnauthenticated();
+          return;
+        }
+        const data = await res.json();
+        setAuthenticated(data.user);
+      } catch (err) {
+        setUnauthenticated();
+      }
+    }
+
+    updateAuthMode();
+    restoreSession();
+  </script>
+</body>
+</html>
