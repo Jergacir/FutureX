@@ -29,32 +29,60 @@
 </head>
 <body class="min-h-screen text-slate-800">
   <div class="max-w-5xl mx-auto px-4 py-6">
+    <section id="auth-panel" class="mx-auto max-w-md rounded-3xl bg-white p-7 shadow-xl border border-slate-100">
+      <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">FutureX</p>
+      <h1 id="auth-title" class="mt-2 text-2xl font-bold text-slate-900">Inicia sesión</h1>
+      <p id="auth-description" class="mt-2 text-sm text-slate-500">Accede a tus registros financieros privados.</p>
+      <form id="auth-form" class="mt-6 space-y-4">
+        <label class="block text-sm font-medium text-slate-700">
+          Correo electrónico
+          <input id="auth-email" type="email" autocomplete="email" required maxlength="254"
+            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+        </label>
+        <label class="block text-sm font-medium text-slate-700">
+          Contraseña
+          <input id="auth-password" type="password" autocomplete="current-password" required minlength="10" maxlength="128"
+            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <span class="mt-1 block text-xs font-normal text-slate-500">Usa al menos 10 caracteres.</span>
+        </label>
+        <button id="auth-submit" type="submit" class="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700">
+          Iniciar sesión
+        </button>
+      </form>
+      <p class="mt-5 text-center text-sm text-slate-600">
+        <span id="auth-toggle-label">¿Aún no tienes cuenta?</span>
+        <button id="auth-toggle" type="button" class="font-semibold text-blue-600 hover:underline">Crear cuenta</button>
+      </p>
+    </section>
+
+    <div id="app-content" class="hidden">
     <header class="rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white p-6 shadow-xl">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <p class="text-blue-100 text-xs uppercase tracking-[0.25em]">FutureX</p>
           <h1 class="text-3xl font-bold">Asistente financiero con IA</h1>
         </div>
-        <div id="status" class="inline-flex items-center gap-2 text-sm bg-white/10 px-3 py-2 rounded-full">
-          <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          Conectando
+        <div class="inline-flex items-center gap-2 text-sm bg-white/10 px-3 py-2 rounded-full">
+          <span id="status-dot" class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="status">Conectando</span>
+          <button id="btn-logout" type="button" class="ml-2 border-l border-white/30 pl-2 hover:underline">Salir</button>
         </div>
       </div>
 
       <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="glass rounded-2xl p-4 border border-white/20">
-          <p class="text-blue-100 text-xs uppercase tracking-[0.2em]">Saldo</p>
-          <p id="saldo-actual" class="text-3xl font-bold mt-2">$0.00</p>
-        </div>
-        <div class="glass rounded-2xl p-4 border border-white/20">
-          <p class="text-blue-100 text-xs uppercase tracking-[0.2em]">Ingresos</p>
-          <p id="ingresos-totales" class="text-3xl font-bold mt-2">$0.00</p>
-        </div>
-        <div class="glass rounded-2xl p-4 border border-white/20">
-          <p class="text-blue-100 text-xs uppercase tracking-[0.2em]">Gastos</p>
-          <p id="gastos-totales" class="text-3xl font-bold mt-2">$0.00</p>
-        </div>
-      </div>
+  <div class="glass rounded-2xl p-4 border border-white/20">
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.2em]">Saldo</p>
+    <p id="saldo-actual" class="text-3xl font-bold mt-2 text-slate-900">$0.00</p>
+  </div>
+  <div class="glass rounded-2xl p-4 border border-white/20">
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.2em]">Ingresos</p>
+    <p id="ingresos-totales" class="text-3xl font-bold mt-2 text-slate-900">$0.00</p>
+  </div>
+  <div class="glass rounded-2xl p-4 border border-white/20">
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.2em]">Gastos</p>
+    <p id="gastos-totales" class="text-3xl font-bold mt-2 text-slate-900">$0.00</p>
+  </div>
+</div>
     </header>
 
     <main class="mt-8 grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
@@ -113,6 +141,7 @@
         </div>
       </aside>
     </main>
+    </div>
   </div>
 
   <div id="overlay-carga" class="fixed inset-0 z-50 hidden bg-slate-900/70 items-center justify-center flex-col text-white">
@@ -132,6 +161,17 @@
 
   <script>
     const statusEl = document.getElementById('status');
+    const statusDot = document.getElementById('status-dot');
+    const authPanel = document.getElementById('auth-panel');
+    const appContent = document.getElementById('app-content');
+    const authForm = document.getElementById('auth-form');
+    const authTitle = document.getElementById('auth-title');
+    const authDescription = document.getElementById('auth-description');
+    const authSubmit = document.getElementById('auth-submit');
+    const authToggle = document.getElementById('auth-toggle');
+    const authToggleLabel = document.getElementById('auth-toggle-label');
+    const authPassword = document.getElementById('auth-password');
+    let isRegisterMode = false;
     const saldoActual = document.getElementById('saldo-actual');
     const ingresosTotales = document.getElementById('ingresos-totales');
     const gastosTotales = document.getElementById('gastos-totales');
@@ -151,7 +191,34 @@
     });
 
     function setStatus(text, tone = 'blue') {
-      statusEl.innerHTML = `<span class="h-2 w-2 rounded-full ${tone === 'red' ? 'bg-rose-400' : 'bg-emerald-400'} animate-pulse"></span> ${text}`;
+      statusEl.textContent = text;
+      statusDot.className = `h-2 w-2 rounded-full ${tone === 'red' ? 'bg-rose-400' : 'bg-emerald-400'} animate-pulse`;
+    }
+
+    function setAuthenticated(user) {
+      authPanel.classList.add('hidden');
+      appContent.classList.remove('hidden');
+      document.getElementById('btn-logout').classList.remove('hidden');
+      setStatus(user.email);
+      fetchTransactions();
+    }
+
+    function setUnauthenticated() {
+      appContent.classList.add('hidden');
+      authPanel.classList.remove('hidden');
+      document.getElementById('btn-logout').classList.add('hidden');
+      setStatus('Inicia sesión', 'red');
+    }
+
+    function updateAuthMode() {
+      authTitle.textContent = isRegisterMode ? 'Crea tu cuenta' : 'Inicia sesión';
+      authDescription.textContent = isRegisterMode
+        ? 'Tus registros financieros estarán separados de los de otros usuarios.'
+        : 'Accede a tus registros financieros privados.';
+      authSubmit.textContent = isRegisterMode ? 'Crear cuenta' : 'Iniciar sesión';
+      authToggleLabel.textContent = isRegisterMode ? '¿Ya tienes cuenta?' : '¿Aún no tienes cuenta?';
+      authToggle.textContent = isRegisterMode ? 'Inicia sesión' : 'Crear cuenta';
+      authPassword.autocomplete = isRegisterMode ? 'new-password' : 'current-password';
     }
 
     function showToast(message, type = 'success') {
@@ -205,7 +272,7 @@
                 <i class="fa-solid ${icon}"></i>
               </div>
               <div class="min-w-0">
-                <p class="font-semibold truncate">${item.descripcion}</p>
+                <p class="font-semibold truncate">${escapeHtml(item.descripcion)}</p>
                 <p class="text-xs text-slate-400">${fecha}</p>
               </div>
             </div>
@@ -217,6 +284,16 @@
       }).join('');
     }
 
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[character]);
+    }
+
     async function fetchTransactions() {
       try {
         const [transactionsRes, reportRes] = await Promise.all([
@@ -224,8 +301,12 @@
           fetch('/api/reports'),
         ]);
 
+        if (transactionsRes.status === 401 || reportRes.status === 401) {
+          setUnauthenticated();
+          return;
+        }
         if (!transactionsRes.ok || !reportRes.ok) {
-          throw new Error('Error al cargar datos');
+          throw new Error('Error al cargar datos del servidor.');
         }
 
         const transactions = await transactionsRes.json();
@@ -307,7 +388,7 @@
           extracted = await response.json();
         }
 
-        if (!extracted || extracted.error) {
+        if (!responseOkForExtraction(extracted)) {
           throw new Error(extracted?.error || 'No pude procesar la entrada.');
         }
 
@@ -325,6 +406,10 @@
         showToast(error.message || 'No se pudo procesar la entrada', 'error');
       } finally {
         hideLoader();
+      }
+
+      function responseOkForExtraction(extracted) {
+        return Boolean(extracted && !extracted.error);
       }
     }
 
@@ -384,8 +469,65 @@
 
     document.getElementById('btn-recargar').addEventListener('click', fetchTransactions);
 
-    setStatus('Conectando');
-    fetchTransactions();
+    authToggle.addEventListener('click', () => {
+      isRegisterMode = !isRegisterMode;
+      updateAuthMode();
+    });
+
+    authForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      authSubmit.disabled = true;
+      authSubmit.classList.add('opacity-60');
+
+      try {
+        const response = await fetch(isRegisterMode ? '/api/auth/register' : '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('auth-email').value,
+            password: authPassword.value,
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'No se pudo iniciar sesión.');
+        }
+        authPassword.value = '';
+        setAuthenticated(result.user);
+      } catch (error) {
+        showToast(error.message || 'No se pudo conectar con el servidor.', 'error');
+      } finally {
+        authSubmit.disabled = false;
+        authSubmit.classList.remove('opacity-60');
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } finally {
+        setUnauthenticated();
+      }
+    });
+
+    async function restoreSession() {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (!response.ok) {
+          setUnauthenticated();
+          return;
+        }
+        const result = await response.json();
+        setAuthenticated(result.user);
+      } catch (error) {
+        console.error(error);
+        setUnauthenticated();
+        showToast('No se pudo comprobar la sesión con el servidor.', 'error');
+      }
+    }
+
+    updateAuthMode();
+    restoreSession();
   </script>
 </body>
 </html>
