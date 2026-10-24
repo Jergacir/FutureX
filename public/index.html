@@ -790,42 +790,94 @@
     <p id="loading-subtext" class="mt-2 text-sm text-slate-300 text-center max-w-sm">Extrayendo tipo, monto y categoría del comprobante.</p>
   </div>
 
-  <!-- Overlay Escucha de Voz Ultra-Interactivo -->
-  <div id="overlay-voz" class="fixed inset-0 z-50 hidden bg-blue-950/95 backdrop-blur-md items-center justify-center flex-col text-white p-6">
-    <!-- Icono animado con ondas visuales -->
-    <div class="relative mb-6 flex items-center justify-center">
-      <div class="w-28 h-28 rounded-full bg-blue-600 flex items-center justify-center text-4xl pulse-glow shadow-2xl shadow-blue-500/60 z-10">
-        <i class="fa-solid fa-microphone text-white"></i>
+  <!-- ================= OVERLAY DE VOZ INTERACTIVO KASHIA ================= -->
+  <div id="overlay-voz" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-white/15 rounded-3xl p-6 sm:p-8 text-white shadow-2xl text-center relative overflow-hidden">
+      
+      <!-- Fondo decorativo sutil -->
+      <div class="absolute -right-10 -top-10 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <!-- ESTADO 1: ESCUCHANDO / ANALIZANDO -->
+      <div id="voice-state-listening" class="space-y-4">
+        <!-- Icono con ondas animadas -->
+        <div class="relative mx-auto w-24 h-24 flex items-center justify-center">
+          <div id="voice-circle-icon" class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-3xl pulse-glow shadow-xl shadow-blue-500/50 transition">
+            <i class="fa-solid fa-microphone text-white"></i>
+          </div>
+          <div id="voice-wave-bars" class="absolute -bottom-2 flex items-center gap-1.5">
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+          </div>
+        </div>
+
+        <div>
+          <h3 id="voice-modal-title" class="text-xl font-bold font-heading text-white">KashIA te está escuchando...</h3>
+          <p id="voice-modal-sub" class="text-xs text-blue-200 mt-1">Habla con naturalidad mencionando monto y concepto</p>
+        </div>
+
+        <!-- Burbuja de Transcripción en Vivo -->
+        <div class="p-3.5 rounded-2xl bg-white/10 border border-white/15 text-center min-h-[56px] flex items-center justify-center">
+          <p id="live-speech-transcript" class="text-sm text-blue-100 italic">
+            "Habla ahora... por ejemplo: 'Vendí 45 soles por Yape'"
+          </p>
+        </div>
+
+        <button id="btn-cancelar-voz" class="px-6 py-2.5 bg-white/10 hover:bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider text-slate-300 transition border border-white/20">
+          Cancelar
+        </button>
       </div>
-      <!-- Equalizer Wave Bars -->
-      <div class="absolute -bottom-4 flex items-center gap-1.5 z-20">
-        <span class="wave-bar"></span>
-        <span class="wave-bar"></span>
-        <span class="wave-bar"></span>
-        <span class="wave-bar"></span>
-        <span class="wave-bar"></span>
+
+      <!-- ESTADO 2: ADVERTENCIA (FALTA MONTO) -->
+      <div id="voice-state-warning" class="hidden space-y-4">
+        <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center justify-center text-3xl shadow-lg shadow-amber-500/20">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold font-heading text-amber-300" id="voice-warning-modal-title">Falta el Monto o Precio</h3>
+          <p class="text-xs text-amber-100/90 mt-1 leading-relaxed" id="voice-warning-modal-msg">
+            KashIA te escuchó, pero no detectó cuánto dinero fue. Para registrarlo, por favor indica el precio.
+          </p>
+        </div>
+
+        <!-- Lo que escuchó KashIA -->
+        <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-400/20 text-xs text-amber-200 text-left">
+          <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block mb-0.5">KashIA escuchó:</span>
+          <span id="voice-warning-heard" class="font-bold text-white text-sm">"HOLA"</span>
+        </div>
+
+        <p class="text-[11px] text-slate-300">
+          💡 <strong>Ejemplo:</strong> <em>"Vendí 50 soles de abarrotes"</em> o <em>"Gasté 20 en pasajes"</em>
+        </p>
+
+        <!-- Botones de Acción: Reintentar y Cancelar -->
+        <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+          <button id="btn-voice-retry" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-microphone"></i>
+            <span>Reintentar (Hablar de nuevo)</span>
+          </button>
+          <button id="btn-voice-cancel-warning" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs uppercase tracking-wider transition border border-white/20">
+            Cancelar
+          </button>
+        </div>
       </div>
-    </div>
 
-    <h2 class="text-2xl font-bold font-heading text-center">KashIA te está escuchando...</h2>
-    
-    <!-- Burbuja de Transcripción en Tiempo Real -->
-    <div class="mt-4 px-6 py-3.5 rounded-2xl bg-white/10 border border-white/20 max-w-md w-full text-center min-h-[60px] flex items-center justify-center">
-      <p id="live-speech-transcript" class="text-sm text-blue-100 italic">
-        "Habla ahora... por ejemplo: 'Vendí 45 soles por Yape'"
-      </p>
-    </div>
+      <!-- ESTADO 3: ÉXITO -->
+      <div id="voice-state-success" class="hidden space-y-4 py-2">
+        <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold font-heading text-emerald-300">¡Operación Registrada!</h3>
+          <p id="voice-success-details" class="text-sm font-semibold text-white mt-1">+S/. 45.00 • Ventas y Cobros</p>
+        </div>
+      </div>
 
-    <!-- Guía y tips -->
-    <div class="mt-6 text-center max-w-sm">
-      <p class="text-xs text-blue-200">
-        <span class="font-bold text-amber-300"><i class="fa-solid fa-lightbulb"></i> Importante:</span> Recuerda incluir el monto o precio para que KashIA lo anote en tu balance.
-      </p>
     </div>
-
-    <button id="btn-cancelar-voz" class="mt-8 px-8 py-3 bg-white/15 hover:bg-white/25 rounded-full text-xs font-bold uppercase tracking-wider transition border border-white/25">
-      Cancelar
-    </button>
   </div>
 
   <!-- ================= JAVASCRIPT ================= -->
@@ -1347,14 +1399,58 @@
       }
     });
 
+    // Voice Modal State Controller
+    function setVoiceModalState(state, data = {}) {
+      const listeningEl = document.getElementById('voice-state-listening');
+      const warningEl = document.getElementById('voice-state-warning');
+      const successEl = document.getElementById('voice-state-success');
+      const waveBars = document.getElementById('voice-wave-bars');
+      const circleIcon = document.getElementById('voice-circle-icon');
+      const modalTitle = document.getElementById('voice-modal-title');
+      const modalSub = document.getElementById('voice-modal-sub');
+
+      listeningEl.classList.add('hidden');
+      warningEl.classList.add('hidden');
+      successEl.classList.add('hidden');
+
+      overlayVoz.classList.remove('hidden');
+      overlayVoz.classList.add('flex');
+
+      if (state === 'listening') {
+        listeningEl.classList.remove('hidden');
+        waveBars.classList.remove('hidden');
+        circleIcon.className = 'w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-3xl pulse-glow shadow-xl shadow-blue-500/50 transition';
+        circleIcon.innerHTML = '<i class="fa-solid fa-microphone text-white"></i>';
+        modalTitle.textContent = 'KashIA te está escuchando...';
+        modalSub.textContent = 'Habla con naturalidad mencionando monto y concepto';
+        document.getElementById('live-speech-transcript').textContent = 'Escuchando en vivo... habla ahora.';
+      } else if (state === 'processing') {
+        listeningEl.classList.remove('hidden');
+        waveBars.classList.add('hidden');
+        circleIcon.className = 'w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-3xl shadow-xl transition';
+        circleIcon.innerHTML = '<div class="loader !w-8 !h-8 !border-white/30 !border-t-white"></div>';
+        modalTitle.textContent = 'KashIA está analizando...';
+        modalSub.textContent = 'Extrayendo monto y categoría con IA';
+      } else if (state === 'warning') {
+        warningEl.classList.remove('hidden');
+        document.getElementById('voice-warning-modal-title').textContent = data.title || 'Falta el Monto o Precio';
+        document.getElementById('voice-warning-modal-msg').textContent = data.message || 'Por favor indica cuánto dinero fue.';
+        document.getElementById('voice-warning-heard').textContent = `"${data.transcript || 'Audio sin monto'}"`;
+      } else if (state === 'success') {
+        successEl.classList.remove('hidden');
+        document.getElementById('voice-success-details').textContent = data.details || 'Operación guardada exitosamente';
+      }
+    }
+
     // AI Voice & Image Interpretation
     async function processTransactionAI(texto, file = null) {
       try {
-        hideWarningBanner();
-        showLoader(
-          file ? 'Analizando Comprobante con KashIA...' : 'Interpretando Voz con KashIA...',
-          file ? 'Leyendo imagen (Yape, Plin o boleta física)...' : 'Analizando intención y montos...'
-        );
+        if (file) {
+          showLoader('Analizando Comprobante con KashIA...', 'Leyendo imagen (Yape, Plin o boleta física)...');
+        } else {
+          // Si es voz, mantenemos el modal abierto en estado procesando
+          setVoiceModalState('processing');
+        }
 
         let res;
         if (file) {
@@ -1376,8 +1472,19 @@
           hideLoader();
           playWarningChime();
           const errorMsg = extracted.error || 'No se pudo interpretar la transacción.';
-          showWarningBanner('Falta el monto o precio', errorMsg);
-          speakKashIA(errorMsg);
+
+          if (file) {
+            showToast(errorMsg, 'error');
+            speakKashIA(errorMsg);
+          } else {
+            // EL MODAL DE VOZ SE QUEDA ABIERTO CON LOS BOTONES DE REINTENTAR Y CANCELAR
+            setVoiceModalState('warning', {
+              transcript: texto,
+              message: errorMsg,
+              title: 'Falta el Monto o Precio',
+            });
+            speakKashIA(errorMsg);
+          }
           return;
         }
 
@@ -1401,14 +1508,32 @@
         const actionWord = extracted.tipo === 'ingreso' ? 'ingreso' : 'gasto';
         const confirmationSpeech = `¡Listo! Registré un ${actionWord} de ${extracted.monto} soles en ${extracted.categoria || 'el negocio'}.`;
         
-        showToast(`✓ Registrado: ${extracted.tipo === 'ingreso' ? 'Venta' : 'Gasto'} de ${formatMoney(extracted.monto)}`);
-        speakKashIA(confirmationSpeech);
+        if (file) {
+          showToast(`✓ Registrado: ${extracted.tipo === 'ingreso' ? 'Venta' : 'Gasto'} de ${formatMoney(extracted.monto)}`);
+          speakKashIA(confirmationSpeech);
+        } else {
+          // Mostrar estado de éxito dentro del modal antes de cerrarlo
+          setVoiceModalState('success', {
+            details: `${extracted.tipo === 'ingreso' ? '+' : '-'}${formatMoney(extracted.monto)} • ${extracted.categoria || 'Comercial'}`
+          });
+          speakKashIA(confirmationSpeech);
+          setTimeout(() => {
+            overlayVoz.classList.add('hidden');
+            overlayVoz.classList.remove('flex');
+          }, 1600);
+        }
 
         await loadAllFinancialData();
       } catch (err) {
         hideLoader();
         console.error(err);
         playWarningChime();
+        if (!file) {
+          setVoiceModalState('warning', {
+            transcript: texto,
+            message: err.message || 'Error de conexión con el asistente.',
+          });
+        }
         showToast(err.message || 'No se pudo procesar la entrada.', 'error');
       }
     }
@@ -1425,9 +1550,7 @@
 
       recognition.onstart = () => {
         playListeningChime();
-        liveSpeechTranscript.textContent = 'Escuchando en vivo... habla con naturalidad.';
-        overlayVoz.classList.remove('hidden');
-        overlayVoz.classList.add('flex');
+        setVoiceModalState('listening');
       };
 
       recognition.onresult = (e) => {
@@ -1437,26 +1560,20 @@
         }
         liveSpeechTranscript.textContent = `"${transcript}"`;
 
-        // Si es el resultado final
+        // Si es el resultado final, NO cerramos el modal, lo pasamos a analizar:
         if (e.results[0].isFinal) {
-          overlayVoz.classList.add('hidden');
-          overlayVoz.classList.remove('flex');
           processTransactionAI(transcript, null);
         }
       };
 
       recognition.onerror = (e) => {
-        overlayVoz.classList.add('hidden');
-        overlayVoz.classList.remove('flex');
         if (e.error !== 'aborted') {
           playWarningChime();
-          showToast('No se capturó audio con claridad.', 'error');
+          setVoiceModalState('warning', {
+            transcript: 'Audio no detectado',
+            message: 'No logré escuchar con claridad. Por favor reintenta hablando más cerca al micrófono.',
+          });
         }
-      };
-
-      recognition.onend = () => {
-        overlayVoz.classList.add('hidden');
-        overlayVoz.classList.remove('flex');
       };
     }
 
@@ -1467,6 +1584,7 @@
         return;
       }
       try {
+        setVoiceModalState('listening');
         recognition.start();
       } catch (err) {
         console.warn(err);
@@ -1477,6 +1595,15 @@
 
     document.getElementById('btn-cancelar-voz').addEventListener('click', () => {
       if (recognition) recognition.abort();
+      overlayVoz.classList.add('hidden');
+      overlayVoz.classList.remove('flex');
+    });
+
+    document.getElementById('btn-voice-retry').addEventListener('click', () => {
+      startVoiceListening();
+    });
+
+    document.getElementById('btn-voice-cancel-warning').addEventListener('click', () => {
       overlayVoz.classList.add('hidden');
       overlayVoz.classList.remove('flex');
     });

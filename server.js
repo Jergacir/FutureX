@@ -201,10 +201,9 @@ function heuristicExtractTransaction(text) {
 }
 
 async function extractWithGemini({ text, imageBase64, mimeType }) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = String(process.env.GEMINI_API_KEY || '').trim();
 
-  if (!apiKey) {
-    console.warn('GEMINI_API_KEY no configurada. Usando motor heurístico alternativo para comercios informales.');
+  if (!apiKey || apiKey.length < 15 || apiKey.includes('TU_API_KEY')) {
     if (text) {
       return heuristicExtractTransaction(text);
     }
