@@ -100,46 +100,90 @@
 
   <!-- ================= AUTH SECTION ================= -->
   <div id="auth-panel" class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 relative overflow-hidden">
-      <div class="absolute -right-12 -top-12 w-40 h-40 bg-blue-100 rounded-full blur-2xl opacity-60"></div>
-      
-      <div class="flex items-center gap-2 mb-2">
-        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold font-heading text-lg shadow-md">K</div>
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 font-heading">KashIA</span>
+    <div class="w-full max-w-md bg-white rounded-3xl p-7 sm:p-8 shadow-2xl border border-slate-100 relative overflow-hidden">
+      <!-- Glow decorations -->
+      <div class="absolute -right-12 -top-12 w-44 h-44 bg-blue-100 rounded-full blur-3xl opacity-70 pointer-events-none"></div>
+      <div class="absolute -left-12 -bottom-12 w-36 h-36 bg-emerald-100 rounded-full blur-2xl opacity-50 pointer-events-none"></div>
+
+      <!-- Header: Logo & Team Badge -->
+      <div class="flex items-center justify-between mb-5 relative z-10">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl hero-gradient text-white flex items-center justify-center font-bold font-heading text-xl shadow-md shadow-blue-500/20">
+            K
+          </div>
+          <div>
+            <span class="text-base font-extrabold tracking-tight text-slate-900 font-heading block">KashIA</span>
+            <span class="text-[10px] text-slate-400 font-semibold block">Finanzas & Microcrédito</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+          Equipo Code Red
+        </span>
       </div>
 
-      <h1 id="auth-title" class="text-2xl font-bold text-slate-900 mt-2">Inicia sesión en KashIA</h1>
-      <p id="auth-description" class="text-sm text-slate-500 mt-1">Digitaliza tus finanzas por voz e imagen y desbloquea tu acceso al microcrédito formal.</p>
+      <!-- TABS: Iniciar Sesión vs Crear Cuenta -->
+      <div class="grid grid-cols-2 p-1 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/60 text-xs font-bold relative z-10">
+        <button type="button" id="tab-login" class="py-2.5 px-3 rounded-xl transition-all shadow-sm bg-white text-blue-700 flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-right-to-bracket text-xs"></i>
+          <span>Iniciar Sesión</span>
+        </button>
+        <button type="button" id="tab-register" class="py-2.5 px-3 rounded-xl transition-all text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-user-plus text-xs"></i>
+          <span>Crear Cuenta</span>
+        </button>
+      </div>
 
-      <form id="auth-form" class="mt-6 space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nombre de tu Negocio / Emprendimiento</label>
-          <input id="auth-business" type="text" placeholder="Ej. Bodega Don Lucho, Taller Creativo"
-            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+      <!-- Dynamic Header Info -->
+      <div class="mb-5 relative z-10">
+        <h1 id="auth-title" class="text-xl sm:text-2xl font-bold text-slate-900 font-heading">Inicia sesión en KashIA</h1>
+        <p id="auth-description" class="text-xs sm:text-sm text-slate-500 mt-1">Ingresa tus credenciales para acceder a tus finanzas y tu Pasaporte Crediticio.</p>
+      </div>
+
+      <form id="auth-form" class="space-y-4 relative z-10">
+        <!-- Business Name Group (ONLY in Register Mode) -->
+        <div id="auth-business-group" class="hidden transition-all duration-200">
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-store text-blue-500 text-[11px]"></i>
+            <span>Nombre de tu Negocio / Emprendimiento</span>
+          </label>
+          <input id="auth-business" type="text" placeholder="Ej. Bodega Don Lucho, Taller Mecánico"
+            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+          <span class="text-[11px] text-slate-400 mt-1 block">El nombre que aparecerá en tu Pasaporte Financiero.</span>
         </div>
 
+        <!-- Email Group (Always visible) -->
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Correo Electrónico</label>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-envelope text-blue-500 text-[11px]"></i>
+            <span>Correo Electrónico</span>
+          </label>
           <input id="auth-email" type="email" required placeholder="negocio@ejemplo.com"
-            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
         </div>
 
+        <!-- Password Group (Always visible) -->
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Contraseña</label>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-lock text-blue-500 text-[11px]"></i>
+            <span>Contraseña</span>
+          </label>
           <input id="auth-password" type="password" required minlength="6" placeholder="••••••••"
-            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
           <span class="text-[11px] text-slate-400 mt-1 block">Mínimo 6 caracteres para mayor seguridad.</span>
         </div>
 
-        <button id="auth-submit" type="submit" class="w-full rounded-xl hero-gradient text-white font-semibold py-3.5 shadow-lg shadow-blue-500/25 hover:opacity-95 transition active:scale-[0.99]">
-          Ingresar a KashIA
+        <!-- Submit Button -->
+        <button id="auth-submit" type="submit" class="w-full rounded-xl hero-gradient text-white font-semibold py-3.5 shadow-lg shadow-blue-500/25 hover:opacity-95 transition active:scale-[0.99] flex items-center justify-center gap-2 mt-2">
+          <i id="auth-submit-icon" class="fa-solid fa-arrow-right-to-bracket text-sm"></i>
+          <span id="auth-submit-text">Ingresar a KashIA</span>
         </button>
       </form>
 
-      <div class="mt-6 pt-5 border-t border-slate-100 text-center">
-        <p class="text-sm text-slate-500">
+      <!-- Bottom toggle link -->
+      <div class="mt-6 pt-5 border-t border-slate-100 text-center relative z-10">
+        <p class="text-xs sm:text-sm text-slate-500">
           <span id="auth-toggle-label">¿Aún no tienes cuenta?</span>
-          <button id="auth-toggle" type="button" class="font-semibold text-blue-600 hover:text-blue-800 ml-1">Crear cuenta gratis</button>
+          <button id="auth-toggle" type="button" class="font-bold text-blue-600 hover:text-blue-800 hover:underline ml-1 cursor-pointer">Crear cuenta gratis</button>
         </p>
       </div>
     </div>
@@ -976,13 +1020,32 @@
     const authTitle = document.getElementById('auth-title');
     const authDescription = document.getElementById('auth-description');
     const authSubmit = document.getElementById('auth-submit');
+    const authSubmitText = document.getElementById('auth-submit-text');
+    const authSubmitIcon = document.getElementById('auth-submit-icon');
     const authToggle = document.getElementById('auth-toggle');
     const authToggleLabel = document.getElementById('auth-toggle-label');
     const authEmail = document.getElementById('auth-email');
     const authPassword = document.getElementById('auth-password');
     const authBusiness = document.getElementById('auth-business');
+    const authBusinessGroup = document.getElementById('auth-business-group');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
     const navBusinessName = document.getElementById('nav-business-name');
     const userEmailDisplay = document.getElementById('user-email-display');
+
+    // Centralized Authenticated Fetch with Bearer Token & Cookies
+    async function authFetch(url, options = {}) {
+      const token = localStorage.getItem('kashia_token');
+      const headers = new Headers(options.headers || {});
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return fetch(url, {
+        ...options,
+        headers,
+        credentials: 'include',
+      });
+    }
 
     const saldoActual = document.getElementById('saldo-actual');
     const saldoEstadoBadge = document.getElementById('saldo-estado-badge');
@@ -1085,13 +1148,47 @@
 
     // Auth Mode UI
     function updateAuthMode() {
-      authTitle.textContent = isRegisterMode ? 'Crear Cuenta en KashIA' : 'Inicia Sesión en KashIA';
-      authDescription.textContent = isRegisterMode
-        ? 'Digitaliza tu negocio y obtén tu Pasaporte Crediticio formal sin costo.'
-        : 'Accede a tus registros financieros privados y perfil de crédito.';
-      authSubmit.textContent = isRegisterMode ? 'Crear cuenta gratis' : 'Ingresar a KashIA';
-      authToggleLabel.textContent = isRegisterMode ? '¿Ya tienes una cuenta?' : '¿Aún no tienes cuenta?';
-      authToggle.textContent = isRegisterMode ? 'Inicia sesión' : 'Crear cuenta gratis';
+      if (isRegisterMode) {
+        if (tabRegister) tabRegister.className = 'py-2.5 px-3 rounded-xl transition-all shadow-sm bg-white text-blue-700 flex items-center justify-center gap-1.5 cursor-pointer';
+        if (tabLogin) tabLogin.className = 'py-2.5 px-3 rounded-xl transition-all text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 cursor-pointer';
+        if (authBusinessGroup) authBusinessGroup.classList.remove('hidden');
+        if (authBusiness) authBusiness.setAttribute('required', 'required');
+        if (authTitle) authTitle.textContent = 'Crea tu cuenta de Negocio';
+        if (authDescription) authDescription.textContent = 'Digitaliza tus ingresos y gastos por voz e imagen y desbloquea microcréditos formales.';
+        if (authSubmitText) authSubmitText.textContent = 'Crear Cuenta de Negocio';
+        if (authSubmitIcon) authSubmitIcon.className = 'fa-solid fa-rocket text-sm';
+        if (authToggleLabel) authToggleLabel.textContent = '¿Ya tienes una cuenta en KashIA?';
+        if (authToggle) authToggle.textContent = 'Iniciar Sesión';
+      } else {
+        if (tabLogin) tabLogin.className = 'py-2.5 px-3 rounded-xl transition-all shadow-sm bg-white text-blue-700 flex items-center justify-center gap-1.5 cursor-pointer';
+        if (tabRegister) tabRegister.className = 'py-2.5 px-3 rounded-xl transition-all text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 cursor-pointer';
+        if (authBusinessGroup) authBusinessGroup.classList.add('hidden');
+        if (authBusiness) authBusiness.removeAttribute('required');
+        if (authTitle) authTitle.textContent = 'Inicia sesión en KashIA';
+        if (authDescription) authDescription.textContent = 'Ingresa tus credenciales para acceder a tus finanzas y tu Pasaporte Crediticio.';
+        if (authSubmitText) authSubmitText.textContent = 'Iniciar Sesión en KashIA';
+        if (authSubmitIcon) authSubmitIcon.className = 'fa-solid fa-arrow-right-to-bracket text-sm';
+        if (authToggleLabel) authToggleLabel.textContent = '¿Aún no tienes cuenta?';
+        if (authToggle) authToggle.textContent = 'Crear cuenta gratis';
+      }
+    }
+
+    if (tabLogin) {
+      tabLogin.addEventListener('click', () => {
+        if (isRegisterMode) {
+          isRegisterMode = false;
+          updateAuthMode();
+        }
+      });
+    }
+
+    if (tabRegister) {
+      tabRegister.addEventListener('click', () => {
+        if (!isRegisterMode) {
+          isRegisterMode = true;
+          updateAuthMode();
+        }
+      });
     }
 
     function setAuthenticated(user) {
@@ -1111,11 +1208,12 @@
     async function loadAllFinancialData() {
       try {
         const [txnsRes, creditRes] = await Promise.all([
-          fetch('/api/transactions'),
-          fetch('/api/credit-profile'),
+          authFetch('/api/transactions'),
+          authFetch('/api/credit-profile'),
         ]);
 
         if (txnsRes.status === 401 || creditRes.status === 401) {
+          localStorage.removeItem('kashia_token');
           setUnauthenticated();
           return;
         }
@@ -1251,7 +1349,7 @@
     window.deleteTransaction = async function(id) {
       if (!confirm('¿Eliminar esta transacción?')) return;
       try {
-        const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+        const res = await authFetch(`/api/transactions/${id}`, { method: 'DELETE' });
         if (res.ok) {
           showToast('Transacción eliminada.');
           await loadAllFinancialData();
@@ -1278,7 +1376,7 @@
       simPlazoLabel.textContent = `${simPlazoActual} meses`;
 
       try {
-        const res = await fetch('/api/credit-simulator', {
+        const res = await authFetch('/api/credit-simulator', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ monto, plazoMeses: simPlazoActual }),
@@ -1312,7 +1410,7 @@
     document.getElementById('btn-open-passport').addEventListener('click', async () => {
       try {
         showLoader('Generando Pasaporte Crediticio Oficial KashIA...', 'Firmando reporte financiero con validación criptográfica SHA-256.');
-        const res = await fetch('/api/credit-passport');
+        const res = await authFetch('/api/credit-passport');
         if (!res.ok) throw new Error('Error al generar pasaporte.');
         const p = await res.json();
 
@@ -1382,7 +1480,7 @@
     document.getElementById('btn-demo-seed').addEventListener('click', async () => {
       try {
         showLoader('Cargando datos de prueba KashIA...', 'Inyectando 9 transacciones representativas de un microcomercio.');
-        const res = await fetch('/api/demo/seed', { method: 'POST' });
+        const res = await authFetch('/api/demo/seed', { method: 'POST' });
         const data = await res.json();
         hideLoader();
         if (res.ok) {
@@ -1456,9 +1554,9 @@
         if (file) {
           const fd = new FormData();
           fd.append('image', file);
-          res = await fetch('/api/transactions/extract', { method: 'POST', body: fd });
+          res = await authFetch('/api/transactions/extract', { method: 'POST', body: fd });
         } else {
-          res = await fetch('/api/transactions/extract', {
+          res = await authFetch('/api/transactions/extract', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: texto }),
@@ -1489,7 +1587,7 @@
         }
 
         // Si sí es válida, guardar automáticamente
-        const saveRes = await fetch('/api/transactions', {
+        const saveRes = await authFetch('/api/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1638,7 +1736,7 @@
 
       try {
         showLoader('Guardando registro...');
-        const res = await fetch('/api/transactions', {
+        const res = await authFetch('/api/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tipo, monto, descripcion, source: 'manual' }),
@@ -1673,24 +1771,40 @@
 
       try {
         const url = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+        const payload = isRegisterMode
+          ? {
+              email: authEmail.value.trim(),
+              password: authPassword.value,
+              businessName: authBusiness.value.trim() || 'Mi Negocio',
+            }
+          : {
+              email: authEmail.value.trim(),
+              password: authPassword.value,
+            };
+
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: authEmail.value,
-            password: authPassword.value,
-            businessName: authBusiness.value || 'Mi Negocio',
-          }),
+          body: JSON.stringify(payload),
+          credentials: 'include',
         });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Fallo de autenticación.');
 
+        // Guardar token JWT en localStorage para persistencia y compatibilidad Serverless Vercel
+        if (data.token) {
+          localStorage.setItem('kashia_token', data.token);
+        }
+
         authPassword.value = '';
         setAuthenticated(data.user);
         playSuccessChime();
-        showToast(`¡Bienvenido a KashIA!`);
-        speakKashIA('Bienvenido a KashIA. Estoy listo para ordenar tus finanzas.');
+        const welcomeMsg = isRegisterMode
+          ? '¡Cuenta creada con éxito! Bienvenido a KashIA.'
+          : `¡Hola de nuevo, ${data.user.businessName || 'Emprendedor'}!`;
+        showToast(welcomeMsg);
+        speakKashIA(isRegisterMode ? '¡Cuenta creada con éxito! Bienvenido a KashIA.' : 'Bienvenido de vuelta. Estoy listo para ayudarte a ordenar tus finanzas.');
       } catch (err) {
         playWarningChime();
         showToast(err.message, 'error');
@@ -1701,20 +1815,35 @@
     });
 
     document.getElementById('btn-logout').addEventListener('click', async () => {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      try {
+        await authFetch('/api/auth/logout', { method: 'POST' });
+      } catch (e) {}
+      localStorage.removeItem('kashia_token');
       setUnauthenticated();
     });
 
     // Session Restore
     async function restoreSession() {
+      const token = localStorage.getItem('kashia_token');
+      // Si no hay token en localStorage, mostramos la pantalla de login directamente
+      if (!token) {
+        setUnauthenticated();
+        return;
+      }
+
       try {
-        const res = await fetch('/api/auth/me');
+        const res = await authFetch('/api/auth/me');
         if (!res.ok) {
+          localStorage.removeItem('kashia_token');
           setUnauthenticated();
           return;
         }
         const data = await res.json();
-        setAuthenticated(data.user);
+        if (data && data.user) {
+          setAuthenticated(data.user);
+        } else {
+          setUnauthenticated();
+        }
       } catch (err) {
         setUnauthenticated();
       }

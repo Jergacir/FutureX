@@ -104,38 +104,58 @@ function writeUsers(users) {
 }
 
 function createSessionToken(user) {
-  return jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({
+    sub: user.id,
+    email: user.email,
+    businessName: user.businessName || 'Mi Negocio',
+  }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-function setSessionCookie(res, user) {
-  res.cookie('session', createSessionToken(user), {
+function setSessionCookie(res, user, token) {
+  const sessionToken = token || createSessionToken(user);
+  res.cookie('session', sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
   });
+  return sessionToken;
 }
 
 function requireAuth(req, res, next) {
-  const token = req.cookies && req.cookies.session;
+  let token = req.cookies && req.cookies.session;
+
+  // Soporte para header Authorization: Bearer <token>
+  if (!token && req.headers.authorization) {
+    const parts = req.headers.authorization.split(' ');
+    if (parts.length === 2 && /^bearer$/i.test(parts[0])) {
+      token = parts[1];
+    }
+  }
+
   if (!token) {
     return res.status(401).json({ error: 'Debes iniciar sesión.' });
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    const user = readUsers().find((entry) => entry.id === payload.sub);
+    // En Vercel Serverless, los lambdas son sin estado. El JWT firmado con JWT_SECRET es la verdad criptográfica.
+    const users = readUsers();
+    let user = users.find((entry) => entry.id === payload.sub);
     if (!user) {
-      return res.status(401).json({ error: 'La sesión ya no es válida. Inicia sesión de nuevo.' });
+      user = {
+        id: payload.sub,
+        email: payload.email,
+        businessName: payload.businessName || 'Mi Negocio',
+      };
+      users.push(user);
+      writeUsers(users);
     }
-    req.user = { id: user.id, email: user.email };
+    req.user = { id: user.id, email: user.email, businessName: user.businessName };
     next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ error: 'La sesión expiró. Inicia sesión de nuevo.' });
-    }
-    next(error);
+    return res.status(401).json({ error: 'La sesión expiró. Inicia sesión de nuevo.' });
   }
 }
 
@@ -511,8 +531,9 @@ app.post('/api/auth/register', authRateLimit, async (req, res, next) => {
     users.push(user);
     writeUsers(users);
 
-    setSessionCookie(res, user);
-    res.status(201).json({ user: { id: user.id, email: user.email, businessName: user.businessName } });
+    const token = createSessionToken(user);
+    setSessionCookie(res, user, token);
+    res.status(201).json({ user: { id: user.id, email: user.email, businessName: user.businessName }, token });
   } catch (error) {
     next(error);
   }
@@ -529,8 +550,9 @@ app.post('/api/auth/login', authRateLimit, async (req, res, next) => {
       return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
     }
 
-    setSessionCookie(res, user);
-    res.json({ user: { id: user.id, email: user.email, businessName: user.businessName || 'Mi Negocio' } });
+    const token = createSessionToken(user);
+    setSessionCookie(res, user, token);
+    res.json({ user: { id: user.id, email: user.email, businessName: user.businessName || 'Mi Negocio' }, token });
   } catch (error) {
     next(error);
   }
@@ -540,7 +562,7 @@ app.post('/api/auth/logout', (req, res) => {
   res.clearCookie('session', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
   });
   res.status(204).end();
@@ -848,7 +870,7 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor.' });
 });
 
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && require.main === module) {
   app.listen(PORT, () => {
     console.log(`Servidor KashIA Credit-AI escuchando en http://localhost:${PORT}`);
   });
